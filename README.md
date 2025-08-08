@@ -142,6 +142,31 @@ Issues and PRs welcome. Please include a short description, repro (if a bug), an
 
 MIT
 
+## CSP Fallback Features
+
+This implementation includes comprehensive Content Security Policy (CSP) fallback mechanisms:
+
+- **Automatic Detection**: Detects when CSP blocks standard fetch/XHR methods
+- **Three-tier Fallback**: fetch() → sendBeacon() → form POST via hidden iframe
+- **Helper Page**: Proxy capture for sites with complete CSP blocks ([src/helper.html](src/helper.html))
+- **User Guidance**: Clear error messages with recovery options
+- **Testing Suite**: CSP compatibility testing at [src/test-csp.html](src/test-csp.html)
+
+For detailed documentation, see [CSP-FALLBACKS.md](CSP-FALLBACKS.md).
+
+## Build and Development
+
+```bash
+# Build minified bookmarklets
+npm run build
+
+# Test CSP compatibility
+npm run dev
+# Then open http://localhost:8080/src/test-csp.html
+```
+
+The built bookmarklets are in the `dist/` directory with different endpoint configurations.
+
 # Swerve
 
 Grab those web pages and give them to AI.

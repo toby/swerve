@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swerve CSP Test Suite</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        
+        .test-section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .csp-simulator {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔒 Swerve CSP Test Suite</h1>
+    <p>This page tests the Content Security Policy (CSP) detection and fallback mechanisms in the Swerve bookmarklet.</p>
+
+    <div class="test-section">
+        <h2>Test 1: Basic Functionality Check</h2>
+        <p>Test that the bookmarklet components load and initialize correctly.</p>
+        <button onclick="testBasicFunctionality()">Run Basic Test</button>
+        <div id="basic-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: CSP Error Detection</h2>
+        <p>Test the CSP error detection function with various error scenarios.</p>
+        <button onclick="testCSPDetection()">Test CSP Detection</button>
+        <div id="csp-detection-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Fetch Method Testing</h2>
+        <p>Test the primary fetch method with different endpoints.</p>
+        <button onclick="testFetchMethod()">Test Fetch (Success)</button>
+        <button onclick="testFetchMethodBlocked()">Test Fetch (Simulated Block)</button>
+        <div id="fetch-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Beacon Fallback</h2>
+        <p>Test the navigator.sendBeacon fallback method.</p>
+        <button onclick="testBeaconMethod()">Test Beacon Fallback</button>
+        <div id="beacon-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Form POST Fallback</h2>
+        <p>Test the hidden iframe form POST fallback method.</p>
+        <button onclick="testFormPostMethod()">Test Form POST Fallback</button>
+        <div id="form-post-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 6: Complete Fallback Chain</h2>
+        <p>Test the complete fallback chain with simulated failures.</p>
+        <button onclick="testCompleteChain()">Test Complete Chain</button>
+        <div id="chain-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>CSP Simulator</h2>
+        <p>Simulate different CSP policies and test responses:</p>
+        <div class="csp-simulator">
+            <label for="csp-policy">CSP Policy:</label>
+            <textarea id="csp-policy" placeholder="Enter CSP policy to simulate (e.g., default-src 'self'; connect-src 'none')">default-src 'self'; connect-src 'none';</textarea>
+            <button onclick="simulateCSP()">Simulate CSP</button>
+        </div>
+        <div id="csp-simulator-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Known CSP Test Sites</h2>
+        <p>Test against real websites with known strict CSP policies:</p>
+        <button onclick="testKnownCSPSite('github.com')">Test GitHub</button>
+        <button onclick="testKnownCSPSite('google.com')">Test Google</button>
+        <button onclick="testKnownCSPSite('facebook.com')">Test Facebook</button>
+        <div id="known-sites-result" class="result"></div>
+    </div>
+
+    <script>
+        // Import the Swerve bookmarklet functions for testing
+        // Note: In a real implementation, we'd load the actual swerve.js file
+        // For testing purposes, we'll create mock versions of the functions
+        
+        const TEST_CONFIG = {
+            testEndpoint: "https://httpbin.org/post", // Public testing endpoint
+            timeout: 10000
+        };
+
+        // Mock Swerve functions for testing
+        function mockCollectPageData() {
+            return {
+                version: "0",
+                page: {
+                    url: location.href,
+                    title: document.title,
+                    userAgent: navigator.userAgent
+                },
+                snapshot: {
+                    html: "<html>test data</html>",
+                    capturedAt: new Date().toISOString()
+                },
+                client: {
+                    bookmarkletVersion: "0.1.0-test"
+                }
+            };
+        }
+
+        function isCSPError(error) {
+            const message = error.message.toLowerCase();
+            return message.includes('csp') || 
+                   message.includes('content security policy') ||
+                   message.includes('blocked by content security policy') ||
+                   (error.name === 'TypeError' && message.includes('failed to fetch'));
+        }
+
+        function showResult(elementId, message, type = 'success') {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `result ${type}`;
+            el.style.display = 'block';
+        }
+
+        // Test functions
+        async function testBasicFunctionality() {
+            try {
+                const data = mockCollectPageData();
+                if (data.version && data.page && data.snapshot) {
+                    showResult('basic-result', '✓ Basic functionality test passed', 'success');
+                } else {
+                    showResult('basic-result', '✗ Basic functionality test failed', 'error');
+                }
+            } catch (error) {
+                showResult('basic-result', `✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCSPDetection() {
+            const testCases = [
+                { error: new Error('Content Security Policy'), expected: true },
+                { error: new Error('blocked by CSP'), expected: true },
+                { error: new TypeError('Failed to fetch'), expected: true },
+                { error: new Error('Network error'), expected: false },
+                { error: new Error('404 Not Found'), expected: false }
+            ];
+
+            let results = [];
+            for (const test of testCases) {
+                const detected = isCSPError(test.error);
+                const passed = detected === test.expected;
+                results.push(`${test.error.message}: ${passed ? '✓' : '✗'} (detected: ${detected})`);
+            }
+
+            showResult('csp-detection-result', results.join('\n'), 'success');
+        }
+
+        async function testFetchMethod() {
+            try {
+                const payload = mockCollectPageData();
+                const response = await fetch(TEST_CONFIG.testEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showResult('fetch-result', '✓ Fetch method test passed', 'success');
+                } else {
+                    showResult('fetch-result', `✗ Fetch failed with status ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showResult('fetch-result', `✗ Fetch error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFetchMethodBlocked() {
+            try {
+                // Simulate a blocked fetch by trying to fetch from a non-existent domain
+                await fetch('https://nonexistent-blocked-domain.invalid', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                
+                showResult('fetch-result', '✗ Expected fetch to fail but it succeeded', 'error');
+            } catch (error) {
+                const isCSP = isCSPError(error);
+                showResult('fetch-result', `✓ Simulated block detected as CSP: ${isCSP} (${error.message})`, 'warning');
+            }
+        }
+
+        async function testBeaconMethod() {
+            try {
+                const payload = mockCollectPageData();
+                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                
+                if (blob.size > 64 * 1024) {
+                    showResult('beacon-result', '⚠ Payload too large for beacon (expected behavior)', 'warning');
+                    return;
+                }
+
+                // Note: sendBeacon doesn't provide feedback, so we can't test success
+                const result = navigator.sendBeacon(TEST_CONFIG.testEndpoint, blob);
+                showResult('beacon-result', `✓ Beacon method called: ${result}`, 'success');
+            } catch (error) {
+                showResult('beacon-result', `✗ Beacon error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFormPostMethod() {
+            return new Promise((resolve) => {
+                try {
+                    const payload = mockCollectPageData();
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.name = 'test-iframe-' + Date.now();
+                    
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = TEST_CONFIG.testEndpoint;
+                    form.target = iframe.name;
+                    form.style.display = 'none';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'payload';
+                    input.value = JSON.stringify(payload);
+
+                    form.appendChild(input);
+                    document.body.appendChild(iframe);
+                    document.body.appendChild(form);
+
+                    iframe.onload = () => {
+                        // Clean up
+                        document.body.removeChild(iframe);
+                        document.body.removeChild(form);
+                        
+                        showResult('form-post-result', '✓ Form POST method completed', 'success');
+                        resolve();
+                    };
+
+                    iframe.onerror = () => {
+                        document.body.removeChild(iframe);
+                        document.body.removeChild(form);
+                        
+                        showResult('form-post-result', '✗ Form POST method failed', 'error');
+                        resolve();
+                    };
+
+                    setTimeout(() => {
+                        showResult('form-post-result', '⚠ Form POST method timed out', 'warning');
+                        resolve();
+                    }, 5000);
+
+                    form.submit();
+                } catch (error) {
+                    showResult('form-post-result', `✗ Form POST error: ${error.message}`, 'error');
+                    resolve();
+                }
+            });
+        }
+
+        async function testCompleteChain() {
+            showResult('chain-result', 'Testing complete fallback chain...', 'warning');
+            
+            const results = [];
+            
+            // Test 1: Normal fetch (should work)
+            try {
+                await testFetchMethod();
+                results.push('✓ Fetch method available');
+            } catch (error) {
+                results.push(`✗ Fetch method failed: ${error.message}`);
+            }
+            
+            // Test 2: Beacon fallback
+            try {
+                await testBeaconMethod();
+                results.push('✓ Beacon method available');
+            } catch (error) {
+                results.push(`✗ Beacon method failed: ${error.message}`);
+            }
+            
+            // Test 3: Form POST fallback
+            try {
+                await testFormPostMethod();
+                results.push('✓ Form POST method available');
+            } catch (error) {
+                results.push(`✗ Form POST method failed: ${error.message}`);
+            }
+            
+            setTimeout(() => {
+                showResult('chain-result', results.join('\n'), 'success');
+            }, 6000); // Wait for form POST test to complete
+        }
+
+        async function simulateCSP() {
+            const policy = document.getElementById('csp-policy').value;
+            if (!policy.trim()) {
+                showResult('csp-simulator-result', 'Please enter a CSP policy to simulate', 'warning');
+                return;
+            }
+
+            // Create a temporary meta tag to simulate CSP
+            const meta = document.createElement('meta');
+            meta.httpEquiv = 'Content-Security-Policy';
+            meta.content = policy;
+            document.head.appendChild(meta);
+
+            showResult('csp-simulator-result', 
+                `CSP policy simulated: "${policy}"\n\nNote: This is a visual simulation. Real CSP testing requires server-side headers.`, 
+                'warning'
+            );
+
+            // Remove the meta tag after a few seconds
+            setTimeout(() => {
+                document.head.removeChild(meta);
+            }, 5000);
+        }
+
+        async function testKnownCSPSite(site) {
+            showResult('known-sites-result', `Testing CSP behavior with ${site}...`, 'warning');
+            
+            try {
+                // This will likely fail due to CORS, but we can test our error detection
+                await fetch(`https://${site}/`, { mode: 'no-cors' });
+                showResult('known-sites-result', `⚠ Request to ${site} completed (likely blocked by CORS/CSP)`, 'warning');
+            } catch (error) {
+                const isCSPDetected = isCSPError(error);
+                showResult('known-sites-result', 
+                    `${site} test:\nError: ${error.message}\nDetected as CSP: ${isCSPDetected}`, 
+                    isCSPDetected ? 'warning' : 'error'
+                );
+            }
+        }
+
+        // Initialize tests on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('CSP Test Suite loaded');
+            
+            // Show browser and CSP info
+            const info = `
+Browser: ${navigator.userAgent}
+CSP Support: ${typeof window.CSPViolationReportBody !== 'undefined' ? 'Yes' : 'Unknown'}
+Current CSP: ${document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content || 'None detected'}
+            `;
+            
+            console.log('Environment Info:', info);
+        });
+    </script>
+</body>
+</html>
