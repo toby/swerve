@@ -1,0 +1,18 @@
+{
+  "name": "swerve",
+  "version": "0.1.0",
+  "description": "AI bookmarklet that ships entire pages to your brainy backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "./test-dashboard.sh"
+  },
+  "keywords": ["bookmarklet", "ai", "web-scraping"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}

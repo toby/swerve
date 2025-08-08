@@ -119,6 +119,64 @@ javascript:(async()=>{try{const E="https://service.example.com/ingest";const m={
 
 Replace https://service.example.com/ingest with your real endpoint.
 
+## Jobs Dashboard
+
+Swerve now includes a built-in dashboard for tracking your page captures and AI processing results in real-time.
+
+### Features
+
+- **Real-time job tracking**: See capture status as it progresses from pending → processing → completed/failed
+- **Auto-refresh**: Dashboard updates every 3 seconds without manual intervention
+- **Processing results**: View AI-generated summaries, insights, and analysis
+- **Job management**: View details, delete individual jobs, or clear all jobs
+- **Responsive design**: Clean, minimal interface that works on desktop and mobile
+- **Processing simulation**: Built-in AI processing simulator for demonstration
+
+### Quick Start
+
+1. **Install dependencies and start the server:**
+   ```bash
+   npm install
+   npm start
+   ```
+
+2. **Open the dashboard:**
+   Navigate to `http://localhost:3000` in your browser
+
+3. **Set up the bookmarklet:**
+   - The dashboard shows a ready-to-use bookmarklet configured for your server
+   - Drag the "Swerve Capture" link to your bookmarks bar
+   - Visit any webpage and click the bookmarklet to capture it
+
+4. **Track your captures:**
+   - Jobs appear instantly in the dashboard
+   - Status updates automatically as processing progresses
+   - Click "Details" to view AI processing results
+   - Use "Delete" to remove individual jobs or "Clear All Jobs" for bulk cleanup
+
+### API Endpoints
+
+The dashboard server provides these endpoints:
+
+- `POST /ingest` - Accept bookmarklet page captures
+- `GET /jobs` - List all jobs with status and metadata  
+- `GET /jobs/:jobId` - Get detailed job information including results
+- `DELETE /jobs/:jobId` - Delete a specific job
+- `GET /` - Serve the dashboard interface
+
+### Job Status Flow
+
+```
+PENDING → PROCESSING → COMPLETED ✅
+                   └→ FAILED ❌
+```
+
+Each job includes:
+- **Metadata**: URL, title, creation/update times
+- **Status indicator**: Color-coded dots with animations for active processing
+- **Processing results**: AI-generated summaries, insights, and analysis (when completed)
+- **Error details**: Failure reasons and retry guidance (when failed)
+
 ## Roadmap
 
 - Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
@@ -126,7 +184,7 @@ Replace https://service.example.com/ingest with your real endpoint.
 - Readability-like text extraction mode
 - On-page preview of what will be sent
 - Per-site allowlist / denylist
-- Tiny dashboard that shows job status after send
+- ✅ **Tiny dashboard that shows job status after send**
 
 ## Developer notes
 
