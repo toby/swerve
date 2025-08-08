@@ -168,6 +168,7 @@ Replace https://service.example.com/ingest with your real endpoint.
 - `src/bookmarklet.js` - Source code for the bookmarklet 
 - `generate.js` - Generator script that minifies and configures the bookmarklet
 - `config.json` - Configuration file with endpoint and auth token
+- `server.js` - Backend server that receives bookmarklet data
 - `build/` - Generated output files (excluded from git)
 
 ### Building
@@ -184,6 +185,44 @@ The generator:
 - Minifies with Terser to reduce size
 - URL-encodes for bookmarklet compatibility
 - Outputs to `build/bookmarklet.txt`
+
+### Running the Backend Server
+
+The included backend server provides a basic endpoint for testing and development:
+
+```bash
+# Install dependencies
+npm install
+
+# Start the server (default port 3000)
+npm start
+
+# Or run directly
+node server.js
+```
+
+The server provides:
+- `POST /ingest` - Accepts bookmarklet data and stores in SQLite database
+- `GET /jobs/:jobId` - Track job status and view stored data  
+- `GET /` - Server status and available endpoints
+- `GET /stats` - Basic statistics about stored snapshots
+
+**Features:**
+- SQLite database storage for web page snapshots
+- CORS support for browser bookmarklet requests
+- Optional Bearer token authentication
+- JSON request/response format matching the data contract
+- Automatic database schema creation
+
+**Database Schema:**
+The server creates a `page_snapshots` table that stores:
+- Page metadata (URL, title, referrer, viewport, scroll position)
+- Full HTML content and text selections
+- Client information (bookmarklet version, language)
+- Transfer metadata (encoding, chunking info)
+- Timestamps and job tracking
+
+The default configuration points to `http://localhost:3000/ingest` for local development.
 
 ### Technical Details
 
