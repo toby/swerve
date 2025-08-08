@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swerve Bookmarklet Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .test-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            background: #0056b3;
+        }
+        
+        .test-button.secondary {
+            background: #6c757d;
+        }
+        
+        .test-button.success {
+            background: #28a745;
+        }
+        
+        .results {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .instructions {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Swerve Bookmarklet Test Page</h1>
+    <p>This page allows you to test the Swerve bookmarklet functionality, including the allowlist/denylist features.</p>
+    
+    <div class="instructions">
+        <h3>📋 Test Instructions</h3>
+        <ol>
+            <li>First, install the Swerve bookmarklet from <code>dist/install.html</code></li>
+            <li>Use the test functions below to simulate different scenarios</li>
+            <li>Hold <strong>Shift</strong> and click the Swerve bookmarklet to configure settings</li>
+            <li>Test normal capture by clicking the Swerve bookmarklet normally</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔧 Configuration Tests</h3>
+        <p>Test the allowlist/denylist configuration system:</p>
+        <button class="test-button" onclick="testShowConfig()">Show Config Modal</button>
+        <button class="test-button secondary" onclick="testGetSettings()">Get Current Settings</button>
+        <button class="test-button secondary" onclick="testResetSettings()">Reset All Settings</button>
+        <div id="config-results" class="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🌐 URL Matching Tests</h3>
+        <p>Test URL pattern matching functionality:</p>
+        <input type="text" id="test-url" placeholder="Enter URL to test" value="https://example.com/test/page" style="width: 300px; padding: 8px; margin-right: 10px;">
+        <br><br>
+        <button class="test-button" onclick="testUrlMatching()">Test URL Matching</button>
+        <button class="test-button secondary" onclick="testAddPattern()">Add Test Patterns</button>
+        <div id="url-results" class="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📦 Capture Tests</h3>
+        <p>Test the capture functionality with different allowlist/denylist settings:</p>
+        <button class="test-button success" onclick="testCapture()">Test Capture (Simulated)</button>
+        <button class="test-button secondary" onclick="testBlockedCapture()">Test Blocked Capture</button>
+        <div id="capture-results" class="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🎯 Pattern Examples</h3>
+        <p>Test these pattern examples:</p>
+        <ul>
+            <li><code>example.com</code> - Exact domain match</li>
+            <li><code>*.google.com</code> - All Google subdomains</li>
+            <li><code>github.com/user/*</code> - Specific path pattern</li>
+            <li><code>/.*\\.ads\\..*/</code> - Regex pattern for ad domains</li>
+        </ul>
+    </div>
+    
+    <!-- Load the bookmarklet code for testing -->
+    <script src="dist/swerve-bookmarklet.js"></script>
+    
+    <script>
+        // Test functions
+        function log(containerId, message) {
+            const container = document.getElementById(containerId);
+            container.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+        
+        function clearLog(containerId) {
+            document.getElementById(containerId).textContent = '';
+        }
+        
+        function testShowConfig() {
+            clearLog('config-results');
+            log('config-results', 'Opening configuration modal...');
+            try {
+                SwerveConfigUI.showConfigModal();
+                log('config-results', 'Configuration modal opened successfully');
+            } catch (e) {
+                log('config-results', 'Error opening config modal: ' + e.message);
+            }
+        }
+        
+        function testGetSettings() {
+            clearLog('config-results');
+            try {
+                const mode = SwerveAllowlist.getMode();
+                const allowlist = SwerveAllowlist.getList('allowlist');
+                const denylist = SwerveAllowlist.getList('denylist');
+                
+                log('config-results', 'Current Settings:');
+                log('config-results', '  Mode: ' + mode);
+                log('config-results', '  Allowlist: ' + JSON.stringify(allowlist, null, 2));
+                log('config-results', '  Denylist: ' + JSON.stringify(denylist, null, 2));
+            } catch (e) {
+                log('config-results', 'Error getting settings: ' + e.message);
+            }
+        }
+        
+        function testResetSettings() {
+            clearLog('config-results');
+            try {
+                SwerveAllowlist.setMode('disabled');
+                SwerveAllowlist.saveList('allowlist', []);
+                SwerveAllowlist.saveList('denylist', []);
+                log('config-results', 'All settings reset to defaults');
+            } catch (e) {
+                log('config-results', 'Error resetting settings: ' + e.message);
+            }
+        }
+        
+        function testUrlMatching() {
+            clearLog('url-results');
+            const testUrl = document.getElementById('test-url').value;
+            
+            if (!testUrl) {
+                log('url-results', 'Please enter a URL to test');
+                return;
+            }
+            
+            try {
+                const result = SwerveAllowlist.isAllowed(testUrl);
+                log('url-results', 'Testing URL: ' + testUrl);
+                log('url-results', 'Result: ' + JSON.stringify(result, null, 2));
+                
+                // Test individual pattern matching
+                const allowlist = SwerveAllowlist.getList('allowlist');
+                const denylist = SwerveAllowlist.getList('denylist');
+                
+                log('url-results', '\nPattern Matching Details:');
+                allowlist.forEach(pattern => {
+                    const matches = SwerveAllowlist.matchesPattern(testUrl, pattern);
+                    log('url-results', '  Allowlist "' + pattern + '": ' + matches);
+                });
+                
+                denylist.forEach(pattern => {
+                    const matches = SwerveAllowlist.matchesPattern(testUrl, pattern);
+                    log('url-results', '  Denylist "' + pattern + '": ' + matches);
+                });
+                
+            } catch (e) {
+                log('url-results', 'Error testing URL: ' + e.message);
+            }
+        }
+        
+        function testAddPattern() {
+            clearLog('url-results');
+            try {
+                // Add some test patterns
+                SwerveAllowlist.addPattern('allowlist', 'example.com');
+                SwerveAllowlist.addPattern('allowlist', '*.google.com');
+                SwerveAllowlist.addPattern('denylist', 'facebook.com');
+                SwerveAllowlist.addPattern('denylist', '*.ads.*');
+                
+                log('url-results', 'Test patterns added:');
+                log('url-results', 'Allowlist: example.com, *.google.com');
+                log('url-results', 'Denylist: facebook.com, *.ads.*');
+            } catch (e) {
+                log('url-results', 'Error adding patterns: ' + e.message);
+            }
+        }
+        
+        function testCapture() {
+            clearLog('capture-results');
+            try {
+                const result = SwerveAllowlist.isAllowed(window.location.href);
+                log('capture-results', 'Testing capture for current URL: ' + window.location.href);
+                log('capture-results', 'Allowed: ' + result.allowed);
+                if (result.reason) {
+                    log('capture-results', 'Reason: ' + result.reason);
+                }
+                
+                if (result.allowed) {
+                    log('capture-results', 'Capture would proceed (simulated - not actually sending data)');
+                    showToast('Simulated capture: allowed ✅', 'success');
+                } else {
+                    log('capture-results', 'Capture would be blocked');
+                    showToast('Simulated capture: blocked ⛔', 'error');
+                }
+            } catch (e) {
+                log('capture-results', 'Error testing capture: ' + e.message);
+            }
+        }
+        
+        function testBlockedCapture() {
+            clearLog('capture-results');
+            try {
+                // Temporarily block current site
+                const currentHostname = window.location.hostname;
+                SwerveAllowlist.setMode('denylist');
+                SwerveAllowlist.addPattern('denylist', currentHostname);
+                
+                const result = SwerveAllowlist.isAllowed(window.location.href);
+                log('capture-results', 'Added current site to denylist: ' + currentHostname);
+                log('capture-results', 'Testing blocked capture...');
+                log('capture-results', 'Result: ' + JSON.stringify(result, null, 2));
+                
+                if (!result.allowed) {
+                    showToast('Simulated capture: blocked as expected ⛔', 'info');
+                }
+                
+                // Clean up
+                setTimeout(() => {
+                    SwerveAllowlist.removePattern('denylist', currentHostname);
+                    log('capture-results', 'Cleaned up test - removed from denylist');
+                }, 2000);
+                
+            } catch (e) {
+                log('capture-results', 'Error testing blocked capture: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
