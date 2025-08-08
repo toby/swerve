@@ -99,7 +99,7 @@ Notes
 - Transport: fetch() with CORS and keepalive true; fallback to navigator.sendBeacon for small payloads; optional form POST to a hidden iframe for hard CSP sites.
 - Compression: lz-string inline (fast, browser-only) to reduce payload size by ~30–60% on text-heavy pages.
 - Chunking: 256–512 KB chunks with ordered dispatch and finalization call.
-- Minimal UI: a tiny toast that says “Beaming page to Swerve…” with success/failure.
+- **Enhanced UI feedback**: Beautiful toast notifications with progress tracking, status updates, and customizable appearance that don't interfere with page content.
 
 ## Security and privacy
 
@@ -119,9 +119,67 @@ javascript:(async()=>{try{const E="https://service.example.com/ingest";const m={
 
 Replace https://service.example.com/ingest with your real endpoint.
 
+## UI Feedback System
+
+Swerve now includes a sophisticated, non-blocking UI feedback system that replaces basic alert() notifications with elegant toast messages. The system provides:
+
+### Features
+
+- **Toast Notifications**: Elegant, unobtrusive notifications that appear in corner positions
+- **Progress Tracking**: Real-time progress indicators for chunked uploads and large operations  
+- **Status Updates**: Clear visual feedback for different states (starting, in progress, success, failure)
+- **Customizable Appearance**: Light/dark themes and positioning options
+- **Isolated Styling**: CSS is namespaced to prevent conflicts with host page styles
+- **Auto-dismiss**: Configurable timing with manual dismiss options
+- **Responsive Design**: Works across different screen sizes and devices
+
+### Toast Types
+
+- **Info** 💫: General information and status messages
+- **Success** ✅: Successful operations and confirmations  
+- **Error** ❌: Error states and failure notifications
+- **Warning** ⚠️: Caution messages and important notices
+- **Loading** 🔄: In-progress operations with spinner animation
+
+### Progress Indicators
+
+For large page captures and chunked uploads, the system shows:
+- Real-time chunk progress (e.g., "3/5 chunks uploaded")
+- Upload speed and size information
+- Time elapsed and estimated completion
+- Detailed error messages if operations fail
+
+### Demo
+
+Try the interactive demo at `demo.html` to see all notification types and customization options in action.
+
+![UI Demo - Light Theme](https://github.com/user-attachments/assets/f1b4326a-49d8-4bde-8efb-825eb788d3c9)
+
+![UI Demo - Dark Theme](https://github.com/user-attachments/assets/2e9bd263-9bad-4b5f-845f-4adc1433e4c4)
+
+### Building the Bookmarklet
+
+The enhanced bookmarklet with UI feedback can be built using the included build script:
+
+```bash
+# Development version (readable)
+node build.js
+
+# Minified version (production)  
+node build.js --minify
+
+# Custom endpoint
+node build.js --endpoint=https://your-service.com/ingest --minify
+```
+
+Built files are saved to the `dist/` directory:
+- `bookmarklet.js`: Human-readable code
+- `bookmarklet.txt`: Complete bookmarklet URL for copying
+
 ## Roadmap
 
-- Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
+- ✅ **UI feedback system**: Elegant toast notifications with progress tracking (completed)
+- ✅ **Generator**: Produce a minified bookmarklet from /src and inject the configured endpoint + token (completed)
 - Optional compression (lz-string) and chunking
 - Readability-like text extraction mode
 - On-page preview of what will be sent

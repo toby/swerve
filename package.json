@@ -1,0 +1,31 @@
+{
+  "name": "swerve",
+  "version": "0.2.0",
+  "description": "An AI bookmarklet that ships entire pages to your brainy backend with elegant UI feedback",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js",
+    "build:minified": "node build.js --minify",
+    "demo": "python3 -m http.server 8080",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "bookmarklet",
+    "ai",
+    "web-scraping",
+    "toast-notifications",
+    "ui-feedback"
+  ],
+  "author": "Swerve Contributors",
+  "license": "MIT",
+  "files": [
+    "src/",
+    "dist/",
+    "build.js",
+    "demo.html",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}
