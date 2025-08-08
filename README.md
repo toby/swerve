@@ -109,7 +109,38 @@ Notes
 - CSP-aware: tries fetch; if blocked, gracefully fails with guidance.
 - No cookies sent: use a bearer token query param or header you control.
 
-## Installing the bookmarklet (manual)
+## Installing the bookmarklet
+
+### Using the Generator (Recommended)
+
+The easiest way to create your personalized bookmarklet is using the built-in generator:
+
+1. **Configure your endpoint** by editing `config.json`:
+   ```json
+   {
+     "endpoint": "https://your-service.com/ingest", 
+     "authToken": "your-bearer-token",
+     "name": "Swerve"
+   }
+   ```
+
+2. **Generate the bookmarklet:**
+   ```bash
+   npm run build
+   ```
+
+3. **Copy and install** the generated bookmarklet URL in your browser bookmarks.
+
+### Generator CLI Options
+
+You can also override settings from the command line:
+
+```bash
+node generate.js --endpoint https://your-service.com/ingest --token your-token
+node generate.js --help  # See all options
+```
+
+### Legacy Manual Installation
 
 We’ll ship a generated link in a later commit. For now:
 - Create a new bookmark called “Swerve.”
@@ -121,7 +152,7 @@ Replace https://service.example.com/ingest with your real endpoint.
 
 ## Roadmap
 
-- Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
+- ✅ Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
 - Optional compression (lz-string) and chunking
 - Readability-like text extraction mode
 - On-page preview of what will be sent
@@ -129,6 +160,30 @@ Replace https://service.example.com/ingest with your real endpoint.
 - Tiny dashboard that shows job status after send
 
 ## Developer notes
+
+### Project Structure
+
+- `src/bookmarklet.js` - Source code for the bookmarklet 
+- `generate.js` - Generator script that minifies and configures the bookmarklet
+- `config.json` - Configuration file with endpoint and auth token
+- `build/` - Generated output files (excluded from git)
+
+### Building
+
+```bash
+npm run build        # Generate bookmarklet with current config
+node generate.js     # Same as above 
+node generate.js --help  # See all CLI options
+```
+
+The generator:
+- Reads source from `src/bookmarklet.js`
+- Injects endpoint URL and auth token from configuration
+- Minifies with Terser to reduce size
+- URL-encodes for bookmarklet compatibility
+- Outputs to `build/bookmarklet.txt`
+
+### Technical Details
 
 - Bookmarklet size: keep under ~2–4 KB unminified for legibility (we’ll ship a minified version later).
 - CSP realities: some sites block inline script execution via strict CSP. In those cases, a bookmarklet may not run. We’ll document fallbacks and a helper page that can open the current tab’s URL in a proxy capture if needed.
