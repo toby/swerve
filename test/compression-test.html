@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swerve Compression Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .stats {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Swerve LZ-String Compression Test</h1>
+    
+    <div class="test-section">
+        <h2>Compression Benchmark</h2>
+        <p>This page contains various text content to test the LZ-string compression effectiveness.</p>
+        
+        <button onclick="testCompression()">Test Compression</button>
+        <button onclick="simulateCapture()">Simulate Page Capture</button>
+        
+        <div id="compression-results" class="results" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Sample Content for Testing</h2>
+        
+        <h3>Lorem Ipsum (Repetitive Text)</h3>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        
+        <h3>HTML Structure (Structured Content)</h3>
+        <div>
+            <div class="nested">
+                <p>This is nested content that should compress well due to repeated HTML tags.</p>
+                <p>This is nested content that should compress well due to repeated HTML tags.</p>
+                <p>This is nested content that should compress well due to repeated HTML tags.</p>
+            </div>
+        </div>
+        
+        <h3>Technical Documentation</h3>
+        <p>JavaScript Object Notation (JSON) is a lightweight data-interchange format. JavaScript Object Notation (JSON) is easy for humans to read and write. JavaScript Object Notation (JSON) is easy for machines to parse and generate. It is based on a subset of the JavaScript Programming Language.</p>
+        
+        <h3>Code Example</h3>
+        <pre><code>
+function compress(data) {
+    return LZString.compress(JSON.stringify(data));
+}
+
+function decompress(compressed) {
+    return JSON.parse(LZString.decompress(compressed));
+}
+
+function compress(data) {
+    return LZString.compress(JSON.stringify(data));
+}
+        </code></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Server-Side Decompression Example</h2>
+        <p>Here's how to handle decompression on the server side:</p>
+        
+        <h4>Node.js Example:</h4>
+        <pre><code>
+const LZString = require('lz-string');
+
+app.post('/ingest', (req, res) => {
+    let payload = req.body;
+    
+    // Check if payload is compressed
+    if (payload.transfer && payload.transfer.encoding === 'lz') {
+        // Decompress the entire body
+        const decompressed = LZString.decompress(JSON.stringify(payload));
+        payload = JSON.parse(decompressed);
+    }
+    
+    // Process the payload...
+    console.log('Page URL:', payload.page.url);
+    console.log('HTML size:', payload.snapshot.html.length);
+    
+    res.json({ jobId: 'job_' + Date.now(), status: 'accepted' });
+});
+        </code></pre>
+
+        <h4>Python Example:</h4>
+        <pre><code>
+import lzstring
+import json
+
+def handle_ingest(request_data):
+    payload = json.loads(request_data)
+    
+    # Check if payload is compressed
+    if payload.get('transfer', {}).get('encoding') == 'lz':
+        # Decompress the payload
+        decompressed = lzstring.LZString().decompress(request_data)
+        payload = json.loads(decompressed)
+    
+    # Process the payload...
+    return {'jobId': f'job_{int(time.time())}', 'status': 'accepted'}
+        </code></pre>
+    </div>
+
+    <script src="../src/swerve.js"></script>
+    <script>
+        async function testCompression() {
+            const resultsDiv = document.getElementById('compression-results');
+            resultsDiv.style.display = 'block';
+            
+            // Test with current page content
+            const testData = {
+                html: document.documentElement.outerHTML,
+                title: document.title,
+                url: window.location.href,
+                timestamp: new Date().toISOString()
+            };
+            
+            const originalStr = JSON.stringify(testData);
+            const originalSize = originalStr.length;
+            
+            console.log('Testing compression...');
+            const startTime = performance.now();
+            
+            const compressed = LZString.compress(originalStr);
+            const compressedSize = compressed.length;
+            
+            const compressionTime = performance.now() - startTime;
+            
+            // Test decompression
+            const decompressStart = performance.now();
+            const decompressed = LZString.decompress(compressed);
+            const decompressionTime = performance.now() - decompressStart;
+            
+            const isValid = decompressed === originalStr;
+            const compressionRatio = ((originalSize - compressedSize) / originalSize * 100);
+            
+            resultsDiv.innerHTML = `
+                <h3>Compression Test Results</h3>
+                <div class="stats">
+                    <strong>Original size:</strong> ${originalSize.toLocaleString()} bytes (${Math.round(originalSize/1024)}KB)<br>
+                    <strong>Compressed size:</strong> ${compressedSize.toLocaleString()} bytes (${Math.round(compressedSize/1024)}KB)<br>
+                    <strong>Compression ratio:</strong> ${compressionRatio.toFixed(1)}% reduction<br>
+                    <strong>Compression time:</strong> ${compressionTime.toFixed(2)}ms<br>
+                    <strong>Decompression time:</strong> ${decompressionTime.toFixed(2)}ms<br>
+                    <strong>Round-trip valid:</strong> ${isValid ? '✅ Yes' : '❌ No'}<br>
+                    <strong>Performance impact:</strong> ${compressionTime < 200 ? '✅ Acceptable' : '⚠️ High'} (&lt;200ms target)
+                </div>
+                ${compressionRatio >= 30 ? 
+                    '<p style="color: green;">✅ <strong>Success!</strong> Achieved target compression of 30%+</p>' : 
+                    '<p style="color: orange;">⚠️ <strong>Below target</strong> - Compression less than 30%</p>'
+                }
+            `;
+        }
+        
+        async function simulateCapture() {
+            console.log('Simulating Swerve capture...');
+            
+            // Temporarily override config for demo
+            const originalEndpoint = SWERVE_CONFIG.endpoint;
+            SWERVE_CONFIG.endpoint = 'https://httpbin.org/post'; // Echo service for demo
+            
+            try {
+                await swerveCapture();
+            } finally {
+                SWERVE_CONFIG.endpoint = originalEndpoint;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "name": "swerve",
+  "version": "0.2.0", 
+  "description": "AI bookmarklet that ships entire pages to your brainy backend with optional LZ compression",
+  "main": "src/swerve.js",
+  "scripts": {
+    "build": "node src/build.js",
+    "test": "node test/benchmark.js",
+    "benchmark": "node test/benchmark.js",
+    "serve-test": "python -m http.server 8080 --directory test",
+    "example-node": "node examples/server-node.js",
+    "example-python": "python examples/server-python.py"
+  },
+  "keywords": [
+    "bookmarklet",
+    "ai",
+    "web-scraping",
+    "compression", 
+    "lz-string",
+    "page-capture"
+  ],
+  "author": "Toby",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toby/swerve.git"
+  },
+  "devDependencies": {
+    "express": "^4.18.0",
+    "lz-string": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
