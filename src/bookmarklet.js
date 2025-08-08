@@ -1,0 +1,216 @@
+/**
+ * Swerve Bookmarklet with Chunking Support
+ * Captures web pages and sends them to an AI backend with automatic chunking for large payloads
+ */
+
+(async () => {
+  try {
+    // Configuration
+    const ENDPOINT = "https://service.example.com/ingest";
+    const VERSION = "0.1.0";
+    const MAX_CHUNK_SIZE = 256 * 1024; // 256KB chunks
+    const SIZE_THRESHOLD = 1024 * 1024; // 1MB threshold for chunking
+
+    // Generate unique job ID for this capture session
+    const jobId = 'job_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    // Capture page data
+    const d = document;
+    const s = window.getSelection && window.getSelection();
+    const selectionText = s ? String(s) : "";
+    const selectionHtml = s && s.rangeCount ? (() => {
+      const r = s.getRangeAt(0);
+      const f = r.cloneContents();
+      const e = d.createElement("div");
+      e.appendChild(f);
+      return e.innerHTML;
+    })() : "";
+
+    // Base payload structure
+    const basePayload = {
+      version: "0",
+      jobId: jobId,
+      page: {
+        url: location.href,
+        title: d.title || null,
+        referrer: d.referrer || document.referrer || null,
+        userAgent: navigator.userAgent,
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight
+        },
+        scroll: {
+          x: window.scrollX,
+          y: window.scrollY
+        }
+      },
+      snapshot: {
+        html: d.documentElement.outerHTML,
+        selectionText,
+        selectionHtml,
+        capturedAt: new Date().toISOString()
+      },
+      client: {
+        bookmarkletVersion: VERSION,
+        language: navigator.language
+      }
+    };
+
+    // Calculate payload size
+    const payloadStr = JSON.stringify(basePayload);
+    const payloadSize = new Blob([payloadStr]).size;
+
+    console.log(`Swerve: Payload size is ${Math.round(payloadSize / 1024)}KB`);
+
+    if (payloadSize <= SIZE_THRESHOLD) {
+      // Send as single chunk
+      await sendSinglePayload(basePayload);
+    } else {
+      // Send as multiple chunks
+      await sendChunkedPayload(basePayload, payloadStr);
+    }
+
+    alert("Swerve: sent ✅");
+
+  } catch (error) {
+    console.error('Swerve error:', error);
+    alert("Swerve: failed ❌ - " + error.message);
+  }
+
+  /**
+   * Send payload as a single request
+   */
+  async function sendSinglePayload(payload) {
+    payload.transfer = {
+      encoding: "plain",
+      chunk: { index: 0, count: 1, total: 1 }
+    };
+
+    const response = await fetch(ENDPOINT, {
+      method: "POST",
+      mode: "cors",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Swerve: Single payload sent successfully', result);
+  }
+
+  /**
+   * Send payload in chunks
+   */
+  async function sendChunkedPayload(basePayload, payloadStr) {
+    const htmlContent = basePayload.snapshot.html;
+    const chunks = splitIntoChunks(htmlContent, MAX_CHUNK_SIZE);
+    const totalChunks = chunks.length;
+
+    console.log(`Swerve: Splitting into ${totalChunks} chunks`);
+
+    // Send each chunk sequentially
+    for (let i = 0; i < totalChunks; i++) {
+      const chunkPayload = {
+        ...basePayload,
+        snapshot: {
+          ...basePayload.snapshot,
+          html: chunks[i] // Replace with chunk content
+        },
+        transfer: {
+          encoding: "plain",
+          chunk: {
+            index: i,
+            count: totalChunks,
+            total: totalChunks,
+            isLast: i === totalChunks - 1
+          }
+        }
+      };
+
+      const response = await fetch(ENDPOINT, {
+        method: "POST",
+        mode: "cors",
+        keepalive: true,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(chunkPayload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Chunk ${i + 1}/${totalChunks} failed: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log(`Swerve: Chunk ${i + 1}/${totalChunks} sent successfully`, result);
+
+      // Small delay between chunks to avoid overwhelming the server
+      if (i < totalChunks - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    // Send finalization call
+    await sendFinalizationCall(basePayload.jobId, totalChunks);
+  }
+
+  /**
+   * Send finalization call to signal all chunks have been transmitted
+   */
+  async function sendFinalizationCall(jobId, totalChunks) {
+    const finalizationPayload = {
+      version: "0",
+      jobId: jobId,
+      type: "finalization",
+      transfer: {
+        encoding: "plain",
+        chunk: {
+          index: -1, // Special index indicating finalization
+          count: totalChunks,
+          total: totalChunks,
+          isFinalization: true
+        }
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    const response = await fetch(ENDPOINT, {
+      method: "POST",
+      mode: "cors",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(finalizationPayload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Finalization failed: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Swerve: Finalization sent successfully', result);
+  }
+
+  /**
+   * Split content into chunks of specified size
+   */
+  function splitIntoChunks(content, chunkSize) {
+    const chunks = [];
+    let offset = 0;
+
+    while (offset < content.length) {
+      const chunk = content.slice(offset, offset + chunkSize);
+      chunks.push(chunk);
+      offset += chunkSize;
+    }
+
+    return chunks;
+  }
+})();

@@ -1,0 +1,28 @@
+{
+  "name": "swerve",
+  "version": "0.1.0",
+  "description": "An AI bookmarklet that ships entire pages to your brainy backend with chunking support",
+  "main": "src/bookmarklet.js",
+  "scripts": {
+    "build": "cd src && node build.js",
+    "test": "echo \"No tests yet - see examples/test.html for manual testing\"",
+    "server": "cd examples && node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toby/swerve.git"
+  },
+  "keywords": [
+    "bookmarklet",
+    "ai",
+    "web-scraping",
+    "chunking",
+    "dom-capture"
+  ],
+  "author": "Toby",
+  "license": "MIT",
+  "devDependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
