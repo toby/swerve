@@ -1,0 +1,33 @@
+{
+  "name": "swerve",
+  "version": "0.2.0",
+  "description": "AI bookmarklet that ships entire pages to your brainy backend with built-in privacy protection",
+  "main": "src/bookmarklet.js",
+  "scripts": {
+    "test": "node src/test-redaction.js",
+    "build": "node src/build.js",
+    "serve": "python3 -m http.server 8080",
+    "config": "open src/config.html"
+  },
+  "keywords": [
+    "bookmarklet",
+    "ai",
+    "privacy",
+    "redaction",
+    "web-scraping",
+    "data-privacy"
+  ],
+  "author": "Swerve",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toby/swerve.git"
+  },
+  "files": [
+    "src/",
+    "PRIVACY.md",
+    "README.md",
+    "install.html",
+    "bookmarklet-minified.js"
+  ]
+}

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swerve Configuration</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .section {
+            background: #f9f9f9;
+            padding: 24px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="url"], textarea, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        
+        button:hover {
+            background: #005a8b;
+        }
+        
+        .button-secondary {
+            background: #6c757d;
+        }
+        
+        .button-secondary:hover {
+            background: #545b62;
+        }
+        
+        .button-danger {
+            background: #dc3545;
+        }
+        
+        .button-danger:hover {
+            background: #c82333;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 4px;
+            margin: 16px 0;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .privacy-info {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 16px;
+            border-radius: 4px;
+            margin: 16px 0;
+        }
+        
+        .bookmarklet-code {
+            background: #f4f4f4;
+            border: 1px solid #ccc;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌐 Swerve Configuration</h1>
+        <p>Configure your privacy settings and redaction preferences</p>
+    </div>
+
+    <div id="status"></div>
+
+    <div class="section">
+        <h3>🔒 Privacy & Redaction Settings</h3>
+        <div class="privacy-info">
+            <strong>Privacy First:</strong> All redaction happens client-side before data leaves your browser. 
+            Sensitive information is replaced with placeholder text before transmission.
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="redactionEnabled" checked>
+                <label for="redactionEnabled">Enable automatic redaction of sensitive data</label>
+            </div>
+        </div>
+
+        <h4>Redaction Patterns</h4>
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="emailRedaction" checked>
+                <label for="emailRedaction">Email addresses (user@example.com)</label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="phoneRedaction" checked>
+                <label for="phoneRedaction">Phone numbers (555-123-4567)</label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="ssnRedaction" checked>
+                <label for="ssnRedaction">Social Security Numbers (123-45-6789)</label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="creditCardRedaction" checked>
+                <label for="creditCardRedaction">Credit card numbers (1234-5678-9012-3456)</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="visualIndicators" checked>
+                <label for="visualIndicators">Show visual indicators for redacted content in previews</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🚫 DOM Exclusion Rules</h3>
+        <p>Specify CSS selectors for elements that should NOT be redacted (one per line):</p>
+        <div class="form-group">
+            <label for="excludeSelectors">Exclude Selectors:</label>
+            <textarea id="excludeSelectors" rows="4" placeholder=".swerve-no-redact&#10;#private-content&#10;.user-profile">.swerve-no-redact
+#swerve-no-redact</textarea>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>⚙️ General Settings</h3>
+        <div class="form-group">
+            <label for="endpoint">API Endpoint:</label>
+            <input type="url" id="endpoint" value="https://service.example.com/ingest" placeholder="https://your-api.example.com/ingest">
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="showPreview" checked>
+                <label for="showPreview">Show preview with redaction summary</label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="compression" checked>
+                <label for="compression">Enable compression (reduces payload size)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🔗 Bookmarklet</h3>
+        <p>Drag this bookmarklet to your bookmarks bar:</p>
+        <a href="#" id="bookmarkletLink" style="background: #007cba; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; display: inline-block;">📡 Swerve</a>
+        
+        <div class="bookmarklet-code" id="bookmarkletCode">
+            <!-- Bookmarklet code will be inserted here -->
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+        <button onclick="saveConfig()">💾 Save Configuration</button>
+        <button onclick="resetConfig()" class="button-secondary">🔄 Reset to Defaults</button>
+        <button onclick="testBookmarklet()" class="button-secondary">🧪 Test Configuration</button>
+        <button onclick="exportConfig()" class="button-secondary">📤 Export Config</button>
+        <button onclick="importConfig()" class="button-secondary">📥 Import Config</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        let config = new SwerveConfig();
+        
+        // Load current configuration
+        function loadCurrentConfig() {
+            const current = config.get();
+            
+            document.getElementById('redactionEnabled').checked = current.privacy.redactionEnabled;
+            document.getElementById('emailRedaction').checked = current.privacy.patterns.email.enabled;
+            document.getElementById('phoneRedaction').checked = current.privacy.patterns.phone.enabled;
+            document.getElementById('ssnRedaction').checked = current.privacy.patterns.ssn.enabled;
+            document.getElementById('creditCardRedaction').checked = current.privacy.patterns.creditCard.enabled;
+            document.getElementById('visualIndicators').checked = current.privacy.visualIndicators;
+            
+            document.getElementById('excludeSelectors').value = current.privacy.excludeSelectors.join('\n');
+            document.getElementById('endpoint').value = current.endpoint;
+            document.getElementById('showPreview').checked = current.ui.showPreview;
+            document.getElementById('compression').checked = current.capture.compression;
+            
+            updateBookmarklet();
+        }
+        
+        // Generate bookmarklet code
+        function generateBookmarkletCode() {
+            const currentConfig = getCurrentFormConfig();
+            
+            // This would normally load the minified bookmarklet code
+            // For now, we'll create a simple version
+            return `javascript:(function(){
+                localStorage.setItem('swerve-config', '${JSON.stringify(currentConfig).replace(/'/g, "\\'")}');
+                var script = document.createElement('script');
+                script.src = 'path/to/bookmarklet.js';
+                document.head.appendChild(script);
+            })();`;
+        }
+        
+        // Get current form configuration
+        function getCurrentFormConfig() {
+            return {
+                endpoint: document.getElementById('endpoint').value,
+                privacy: {
+                    redactionEnabled: document.getElementById('redactionEnabled').checked,
+                    patterns: {
+                        email: { enabled: document.getElementById('emailRedaction').checked },
+                        phone: { enabled: document.getElementById('phoneRedaction').checked },
+                        ssn: { enabled: document.getElementById('ssnRedaction').checked },
+                        creditCard: { enabled: document.getElementById('creditCardRedaction').checked }
+                    },
+                    excludeSelectors: document.getElementById('excludeSelectors').value.split('\n').filter(s => s.trim()),
+                    visualIndicators: document.getElementById('visualIndicators').checked
+                },
+                ui: {
+                    showPreview: document.getElementById('showPreview').checked
+                },
+                capture: {
+                    compression: document.getElementById('compression').checked
+                }
+            };
+        }
+        
+        // Update bookmarklet display
+        function updateBookmarklet() {
+            const code = generateBookmarkletCode();
+            document.getElementById('bookmarkletLink').href = code;
+            document.getElementById('bookmarkletCode').textContent = code;
+        }
+        
+        // Save configuration
+        function saveConfig() {
+            const formConfig = getCurrentFormConfig();
+            const success = config.update(formConfig);
+            
+            showStatus(success ? 'Configuration saved successfully!' : 'Failed to save configuration', success ? 'success' : 'error');
+            
+            if (success) {
+                updateBookmarklet();
+            }
+        }
+        
+        // Reset configuration
+        function resetConfig() {
+            if (confirm('Are you sure you want to reset all settings to defaults?')) {
+                config.reset();
+                loadCurrentConfig();
+                showStatus('Configuration reset to defaults', 'success');
+            }
+        }
+        
+        // Test configuration
+        function testBookmarklet() {
+            const formConfig = getCurrentFormConfig();
+            const testData = {
+                text: "Contact us at john.doe@example.com or call 555-123-4567. SSN: 123-45-6789, Credit card: 4532-1234-5678-9012"
+            };
+            
+            // Simple test of redaction patterns
+            let redactionCount = 0;
+            let testResult = testData.text;
+            
+            if (formConfig.privacy.redactionEnabled) {
+                if (formConfig.privacy.patterns.email.enabled) {
+                    const matches = testResult.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g);
+                    if (matches) redactionCount += matches.length;
+                    testResult = testResult.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, '[EMAIL_REDACTED]');
+                }
+                if (formConfig.privacy.patterns.creditCard.enabled) {
+                    const matches = testResult.match(/\b(?:\d{4}[-.\s]?){3}\d{4}\b/g);
+                    if (matches) redactionCount += matches.length;
+                    testResult = testResult.replace(/\b(?:\d{4}[-.\s]?){3}\d{4}\b/g, '[CARD_REDACTED]');
+                }
+                if (formConfig.privacy.patterns.phone.enabled) {
+                    const matches = testResult.match(/(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b/g);
+                    if (matches) redactionCount += matches.length;
+                    testResult = testResult.replace(/(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b/g, '[PHONE_REDACTED]');
+                }
+                if (formConfig.privacy.patterns.ssn.enabled) {
+                    const matches = testResult.match(/\b(?:\d{3}[-.\s]?\d{2}[-.\s]?\d{4})\b/g);
+                    if (matches) redactionCount += matches.length;
+                    testResult = testResult.replace(/\b(?:\d{3}[-.\s]?\d{2}[-.\s]?\d{4})\b/g, '[SSN_REDACTED]');
+                }
+            }
+            
+            showStatus(`Test completed: ${redactionCount} items redacted. Result: "${testResult}"`, 'success');
+        }
+        
+        // Export configuration
+        function exportConfig() {
+            const configJson = config.export();
+            const blob = new Blob([configJson], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'swerve-config.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus('Configuration exported successfully', 'success');
+        }
+        
+        // Import configuration
+        function importConfig() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const success = config.import(e.target.result);
+                            if (success) {
+                                loadCurrentConfig();
+                                showStatus('Configuration imported successfully', 'success');
+                            } else {
+                                showStatus('Failed to import configuration', 'error');
+                            }
+                        } catch (error) {
+                            showStatus('Invalid configuration file', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+        
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentConfig();
+            
+            // Add event listeners for real-time bookmarklet updates
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                element.addEventListener('change', updateBookmarklet);
+                element.addEventListener('input', updateBookmarklet);
+            });
+        });
+    </script>
+</body>
+</html>
