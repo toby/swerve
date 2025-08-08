@@ -104,6 +104,7 @@ Notes
 ## Security and privacy
 
 - Consent-first philosophy: the bookmarklet only sends the current page when you click it.
+- **Site control:** allowlist/denylist functionality lets you control which sites can be captured.
 - Scope control: configurable to send selection only, above-the-fold only, or full DOM.
 - Redaction hooks: client-side replacers for emails, numbers, patterns before upload.
 - CSP-aware: tries fetch; if blocked, gracefully fails with guidance.
@@ -119,13 +120,58 @@ javascript:(async()=>{try{const E="https://service.example.com/ingest";const m={
 
 Replace https://service.example.com/ingest with your real endpoint.
 
+## Allowlist/Denylist Functionality
+
+Swerve now includes a powerful allowlist/denylist system to control which sites can be captured:
+
+### Features
+
+- **Three modes:**
+  - `disabled`: Allow all sites (default)
+  - `allowlist`: Only allow specified sites
+  - `denylist`: Block specified sites
+- **Pattern matching** supports:
+  - Exact domains: `example.com`
+  - Wildcard subdomains: `*.google.com`
+  - Path patterns: `example.com/blog/*`
+  - Regex patterns: `/.*\.ads\..*/`
+- **Persistent storage** using localStorage
+- **Configuration UI** accessible via Shift+click
+- **Clear feedback** when captures are blocked
+
+### Configuration UI
+
+Hold **Shift** and click the Swerve bookmarklet to open the configuration modal where you can:
+
+- Switch between disabled/allowlist/denylist modes
+- Add/remove site patterns
+- View pattern examples and syntax help
+- See real-time pattern matching
+
+### Pattern Examples
+
+| Pattern | Matches |
+|---------|---------|
+| `example.com` | Only example.com |
+| `*.google.com` | All Google subdomains (mail.google.com, docs.google.com, etc.) |
+| `github.com/user/*` | All pages under github.com/user/ |
+| `/.*\.ads\..*/` | Any domain containing ".ads." (regex pattern) |
+| `facebook.com` | Just facebook.com (exact match) |
+
+### Usage
+
+1. **Normal click**: Capture current page (if allowed)
+2. **Shift+click**: Open configuration panel
+3. Blocked captures show clear error messages
+4. Settings persist across browser sessions
+
 ## Roadmap
 
-- Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
+- ✅ Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
+- ✅ Per-site allowlist / denylist with pattern matching and localStorage persistence
 - Optional compression (lz-string) and chunking
 - Readability-like text extraction mode
 - On-page preview of what will be sent
-- Per-site allowlist / denylist
 - Tiny dashboard that shows job status after send
 
 ## Developer notes
