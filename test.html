@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swerve Bookmarklet Test Page</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        
+        .highlight {
+            background: #ffd93d;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+        
+        .sensitive {
+            background: #ffe6e6;
+            padding: 0.5rem;
+            border-left: 4px solid #ff6b6b;
+            margin: 1rem 0;
+        }
+        
+        .sample-content {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .bookmarklet-link {
+            background: #007acc;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            display: inline-block;
+            margin: 1rem 0;
+            font-weight: 500;
+        }
+        
+        .bookmarklet-link:hover {
+            background: #005c99;
+        }
+        
+        .instructions {
+            background: #e6f3ff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #007acc;
+        }
+        
+        code {
+            background: #f1f3f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+        
+        .feature-list {
+            background: #f0f8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        ul {
+            margin: 0.5rem 0;
+        }
+        
+        li {
+            margin: 0.25rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Swerve Bookmarklet Test Page</h1>
+        
+        <div class="instructions">
+            <h3>Testing the New Preview Feature</h3>
+            <p>This page is designed to test the new Swerve preview and redaction capabilities. Click the bookmarklet link below to see the preview modal in action.</p>
+        </div>
+
+        <a href="javascript:(function(){var script=document.createElement('script');script.src='src/swerve.js';document.head.appendChild(script);})();" class="bookmarklet-link">
+            📄 Test Swerve Preview (Load Script)
+        </a>
+        
+        <p style="margin: 1rem 0; font-size: 0.9rem; color: #666;">
+            Or test the minified version: 
+        </p>
+        
+        <textarea readonly style="width: 100%; height: 60px; font-family: monospace; font-size: 11px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; padding: 8px;">javascript:(async function(){'use strict';const SWERVE_CONFIG={endpoint:'https://service.example.com/ingest',version:'0.2.0',ui:{modalId:'swerve-preview-modal',backdropId:'swerve-modal-backdrop'}};const CAPTURE_MODES={FULL_PAGE:'full-page',SELECTION:'selection',TEXT_ONLY:'text-only',VISIBLE_AREA:'visible-area'};let currentCaptureMode=CAPTURE_MODES.FULL_PAGE;let capturedData=null;let hiddenElements=new Set();function collectPageData(mode=CAPTURE_MODES.FULL_PAGE){const d=document;const s=window.getSelection&&window.getSelection();const selectionText=s?String(s):'';const selectionHtml=s&&s.rangeCount?(()=>{const r=s.getRangeAt(0);const f=r.cloneContents();const e=d.createElement('div');e.appendChild(f);return e.innerHTML})():'';let html='';let contentText='';switch(mode){case CAPTURE_MODES.FULL_PAGE:html=d.documentElement.outerHTML;contentText=d.body?d.body.innerText:d.documentElement.innerText;break;case CAPTURE_MODES.SELECTION:html=selectionHtml;contentText=selectionText;break;case CAPTURE_MODES.TEXT_ONLY:html='';contentText=extractTextContent();break;case CAPTURE_MODES.VISIBLE_AREA:html=getVisibleAreaHTML();contentText=getVisibleAreaText();break;}return{version:'0',page:{url:location.href,title:d.title||null,referrer:d.referrer||document.referrer||null,userAgent:navigator.userAgent,viewport:{width:window.innerWidth,height:window.innerHeight},scroll:{x:window.scrollX,y:window.scrollY}},snapshot:{html:html,selectionText:selectionText,selectionHtml:selectionHtml,textContent:contentText,capturedAt:new Date().toISOString(),captureMode:mode,hiddenElements:Array.from(hiddenElements)},transfer:{encoding:'plain',chunk:{index:0,count:1}},client:{bookmarkletVersion:SWERVE_CONFIG.version,language:navigator.language}};}function extractTextContent(){const content=document.body?document.body.innerText:document.documentElement.innerText;return content.replace(/\s+/g,' ').trim();}function getVisibleAreaHTML(){const viewport={top:window.scrollY,left:window.scrollX,bottom:window.scrollY+window.innerHeight,right:window.scrollX+window.innerWidth};const elements=[];const walker=document.createTreeWalker(document.body||document.documentElement,NodeFilter.SHOW_ELEMENT,{acceptNode:function(node){const rect=node.getBoundingClientRect();const absRect={top:rect.top+window.scrollY,left:rect.left+window.scrollX,bottom:rect.bottom+window.scrollY,right:rect.right+window.scrollX};if(absRect.bottom>=viewport.top&&absRect.top<=viewport.bottom&&absRect.right>=viewport.left&&absRect.left<=viewport.right){return NodeFilter.FILTER_ACCEPT;}return NodeFilter.FILTER_REJECT;}});let node;while(node=walker.nextNode()){elements.push(node);}const container=document.createElement('div');elements.forEach(el=>{const clone=el.cloneNode(true);container.appendChild(clone);});return container.innerHTML;}function getVisibleAreaText(){const visibleHTML=getVisibleAreaHTML();const temp=document.createElement('div');temp.innerHTML=visibleHTML;return temp.innerText||temp.textContent||'';}/* ... */try{if(document.getElementById(SWERVE_CONFIG.ui.modalId)){alert('Swerve preview is already open!');return;}alert('This is a simplified test - see network tab for full functionality');}catch(error){console.error('Swerve error:',error);alert('Swerve: Error - '+error.message);}})();</textarea>
+
+        <div class="feature-list">
+            <h3>✨ Preview Feature Capabilities</h3>
+            <ul>
+                <li><strong>Content Preview:</strong> See exactly what will be captured before sending</li>
+                <li><strong>Multiple Capture Modes:</strong> Full page, selection only, text-only, or visible area</li>
+                <li><strong>Element Redaction:</strong> Click to hide sensitive elements from capture</li>
+                <li><strong>Responsive Modal:</strong> Works across different screen sizes and layouts</li>
+                <li><strong>Confirmation Step:</strong> Explicit send action prevents accidental submissions</li>
+            </ul>
+        </div>
+
+        <h2>Sample Content for Testing</h2>
+        
+        <p>This is some regular paragraph text that should be captured in all modes. You can <span class="highlight">select this highlighted text</span> to test the selection-only capture mode.</p>
+
+        <div class="sensitive">
+            <strong>🔒 Sensitive Information Block</strong><br>
+            Email: user@example.com<br>
+            Phone: (555) 123-4567<br>
+            SSN: 123-45-6789<br>
+            <em>This block should be easy to redact using the element selection tool</em>
+        </div>
+
+        <div class="sample-content">
+            <h3>Technical Details</h3>
+            <p>The preview system captures different types of content:</p>
+            <ul>
+                <li><code>document.documentElement.outerHTML</code> for full page capture</li>
+                <li><code>window.getSelection()</code> for selection-based capture</li>
+                <li><code>innerText</code> extraction for text-only mode</li>
+                <li>Viewport-based filtering for visible area capture</li>
+            </ul>
+        </div>
+
+        <h3>How to Test</h3>
+        <ol>
+            <li>Click the "Test Swerve Preview" link above</li>
+            <li>Try different capture modes using the radio buttons</li>
+            <li>Test the redaction feature by clicking "Enable Element Selection" and clicking on elements</li>
+            <li>Review the preview content to ensure it matches your expectations</li>
+            <li>Use "Cancel" to dismiss without sending, or "Send to Swerve" to test the transmission</li>
+        </ol>
+
+        <div class="sample-content">
+            <h3>Expected Behavior</h3>
+            <ul>
+                <li>Modal should appear with content preview</li>
+                <li>Switching modes should update the preview in real-time</li>
+                <li>Element selection should highlight clickable elements</li>
+                <li>Hidden elements should show with red outline and reduced opacity</li>
+                <li>Preview should accurately represent what will be sent</li>
+                <li>Modal should be dismissible with Escape key or backdrop click</li>
+            </ul>
+        </div>
+
+        <p><strong>Note:</strong> The endpoint is configured to <code>https://service.example.com/ingest</code> which will fail in testing, but you can see the network request in browser dev tools to verify the payload structure.</p>
+    </div>
+</body>
+</html>
