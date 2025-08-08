@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Article: The Future of AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        .header { background: #333; color: white; padding: 1rem; }
+        .nav { background: #666; padding: 0.5rem; }
+        .nav a { color: white; margin-right: 1rem; text-decoration: none; }
+        .container { display: flex; max-width: 1200px; margin: 0 auto; }
+        .sidebar { width: 250px; background: #f5f5f5; padding: 1rem; }
+        .content { flex: 1; padding: 2rem; }
+        .footer { background: #333; color: white; padding: 1rem; text-align: center; }
+        .ad { background: #ffe6e6; border: 1px solid #ff9999; padding: 1rem; margin: 1rem 0; }
+        .related { background: #e6f3ff; border: 1px solid #99ccff; padding: 1rem; margin: 1rem 0; }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 2rem; }
+        p { line-height: 1.6; margin-bottom: 1rem; }
+        blockquote { border-left: 4px solid #ccc; margin: 1rem 0; padding-left: 1rem; font-style: italic; }
+        ul { margin: 1rem 0; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <!-- Header (should be filtered out) -->
+    <header class="header">
+        <h1>Tech News Today</h1>
+        <p>Your source for the latest technology updates</p>
+    </header>
+
+    <!-- Navigation (should be filtered out) -->
+    <nav class="nav">
+        <a href="#home">Home</a>
+        <a href="#tech">Technology</a>
+        <a href="#ai">AI</a>
+        <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="container">
+        <!-- Sidebar (should be filtered out) -->
+        <aside class="sidebar">
+            <h3>Popular Articles</h3>
+            <ul>
+                <li><a href="#">The Rise of Machine Learning</a></li>
+                <li><a href="#">Quantum Computing Breakthrough</a></li>
+                <li><a href="#">Blockchain Revolution</a></li>
+            </ul>
+            
+            <div class="ad">
+                <h4>Advertisement</h4>
+                <p>Buy the latest gadgets now! Super sale - 50% off all items. Click here to save big!</p>
+            </div>
+        </aside>
+
+        <!-- Main content (should be extracted) -->
+        <main class="content">
+            <article>
+                <h1>The Future of AI: Transforming Industries and Daily Life</h1>
+                
+                <p>Artificial Intelligence is no longer a concept confined to science fiction. Today, AI technologies are reshaping industries, revolutionizing how we work, and transforming our daily experiences in unprecedented ways.</p>
+
+                <h2>Current Applications</h2>
+                
+                <p>From healthcare diagnostics to autonomous vehicles, AI applications are becoming increasingly sophisticated. Machine learning algorithms can now:</p>
+                
+                <ul>
+                    <li>Detect diseases earlier than human doctors in many cases</li>
+                    <li>Optimize supply chains and reduce waste</li>
+                    <li>Personalize educational content for individual learners</li>
+                    <li>Enhance cybersecurity through pattern recognition</li>
+                </ul>
+
+                <blockquote>
+                    "The development of artificial intelligence will be the most significant technological advancement since the invention of the internet." - Tech Industry Expert
+                </blockquote>
+
+                <h2>Technical Challenges</h2>
+                
+                <p>Despite rapid progress, several challenges remain in AI development:</p>
+                
+                <p><strong>Data Quality and Bias:</strong> AI systems are only as good as the data they're trained on. Ensuring diverse, representative datasets is crucial for fair and accurate AI systems.</p>
+                
+                <p><strong>Computational Requirements:</strong> Training large AI models requires significant computational resources. For example, training a modern language model might require:</p>
+                
+                <pre><code>
+Training Time: 2-4 weeks
+GPUs Required: 100-1000+ 
+Energy Cost: $1-10 million
+Data Size: 100GB - 1TB
+                </code></pre>
+
+                <h2>Future Implications</h2>
+                
+                <p>As AI continues to evolve, we can expect to see transformative changes across multiple sectors. The integration of AI into everyday tools will likely make technology more intuitive and accessible to all users.</p>
+
+                <p>However, this rapid advancement also raises important questions about employment, privacy, and the ethical use of AI systems. Society must work together to ensure AI development benefits everyone.</p>
+            </article>
+
+            <!-- Related content (should be filtered out) -->
+            <div class="related">
+                <h3>Related Articles</h3>
+                <ul>
+                    <li><a href="#">Machine Learning Basics</a></li>
+                    <li><a href="#">Ethics in AI Development</a></li>
+                    <li><a href="#">The Job Market and Automation</a></li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer (should be filtered out) -->
+    <footer class="footer">
+        <p>&copy; 2024 Tech News Today. All rights reserved.</p>
+        <div class="social-links">
+            <a href="#twitter">Twitter</a> |
+            <a href="#facebook">Facebook</a> |
+            <a href="#linkedin">LinkedIn</a>
+        </div>
+    </footer>
+
+    <!-- Test Scripts -->
+    <script src="../src/readability.js"></script>
+    <script src="../src/swerve.js"></script>
+    <script>
+        // Test the readability extraction
+        function testExtraction() {
+            const startTime = performance.now();
+            const result = extractReadableContent(document);
+            const endTime = performance.now();
+            
+            console.log('Extraction completed in', Math.round(endTime - startTime), 'ms');
+            console.log('Metadata:', result.metadata);
+            console.log('Extracted text length:', result.text.length);
+            console.log('Extracted text:', result.text);
+            
+            // Display results
+            const output = document.getElementById('output') || document.createElement('div');
+            output.id = 'output';
+            output.innerHTML = `
+                <h2>Extraction Results</h2>
+                <p><strong>Processing time:</strong> ${Math.round(endTime - startTime)}ms</p>
+                <p><strong>Method:</strong> ${result.metadata.method}</p>
+                <p><strong>Content score:</strong> ${result.metadata.contentScore}</p>
+                <p><strong>Text length:</strong> ${result.text.length} characters</p>
+                <hr>
+                <pre style="white-space: pre-wrap; background: #f9f9f9; padding: 1rem; border: 1px solid #ddd;">${result.text}</pre>
+            `;
+            
+            if (!document.getElementById('output')) {
+                document.body.appendChild(output);
+            }
+        }
+        
+        // Add test button
+        document.addEventListener('DOMContentLoaded', function() {
+            const testBtn = document.createElement('button');
+            testBtn.textContent = 'Test Text Extraction';
+            testBtn.onclick = testExtraction;
+            testBtn.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 9999; background: #007cba; color: white; border: none; padding: 10px; cursor: pointer;';
+            document.body.appendChild(testBtn);
+        });
+    </script>
+</body>
+</html>

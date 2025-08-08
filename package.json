@@ -1,0 +1,22 @@
+{
+  "name": "swerve",
+  "version": "0.1.0",
+  "description": "An AI bookmarklet that ships entire pages to your brainy backend",
+  "main": "src/swerve.js",
+  "scripts": {
+    "build": "node build.js",
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "bookmarklet",
+    "ai",
+    "web-scraping",
+    "readability"
+  ],
+  "author": "Toby",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toby/swerve.git"
+  }
+}

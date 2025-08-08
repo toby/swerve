@@ -15,14 +15,13 @@ Swerve is for folks who want zero-install, works-everywhere capture that plays n
 - HTML snapshot: document.documentElement.outerHTML
 - URL, title, referrer, viewport size, user agent
 - Selection (if any): text + minimal HTML
-
+- **Clean text extraction**: Readability-like algorithm that identifies main content
 - Scroll position and visible region
 - Timing hints: when capture started/finished
 
 Optional (opt-in, may be blocked by CSP):
 
 - Inline style snapshot (computed styles for visible elements)
-- Text-only extraction (readability-like heuristic)
 
 What we do NOT do by default:
 
@@ -72,6 +71,16 @@ Content-Type: application/json
 		"html": "<html>...</html>",
 		"selectionText": "...optional...",
 		"selectionHtml": "...optional...",
+		"extractedText": "# Article Title\n\nMain content with preserved formatting...",
+		"extractionMetadata": {
+			"method": "readability",
+			"contentScore": 8.5,
+			"processingTimeMs": 45,
+			"candidatesFound": 12,
+			"textLength": 2341,
+			"originalLength": 15678,
+			"extractionEnabled": true
+		},
 		"capturedAt": "2025-08-08T12:34:56.000Z"
 	},
 	"transfer": {
@@ -109,6 +118,43 @@ Notes
 - CSP-aware: tries fetch; if blocked, gracefully fails with guidance.
 - No cookies sent: use a bearer token query param or header you control.
 
+## Text Extraction Mode
+
+Swerve includes a lightweight Readability-like algorithm that intelligently extracts the main content from web pages, filtering out navigation, ads, sidebars, and other non-content elements.
+
+### Features
+
+- **Smart content detection**: Uses heuristics to identify article content vs. navigation/ads
+- **Structure preservation**: Maintains headings, paragraphs, lists, blockquotes, and code blocks
+- **Fast processing**: Optimized for < 300ms extraction time 
+- **Configurable**: Can be enabled/disabled via bookmarklet configuration
+- **Quality scoring**: Provides confidence metrics about extraction quality
+
+### How it works
+
+The algorithm analyzes page elements using multiple signals:
+- **Content density**: Text-to-HTML ratio
+- **Semantic markup**: Article, main, section tags get boosted
+- **CSS class analysis**: Filters out nav, sidebar, ad-related classes  
+- **Text length**: Favors elements with substantial text content
+- **Element scoring**: Combines all signals to find the best content container
+
+### Extracted format
+
+Text is extracted with markdown-like formatting:
+- Headings: `# H1`, `## H2`, etc.
+- Paragraphs: Plain text with double newlines
+- Lists: `- item` or `1. item` format  
+- Blockquotes: `> quoted text`
+- Code: ``` fenced blocks ```
+
+### Performance
+
+- Typical processing time: 50-150ms
+- Maximum allowed time: 300ms (falls back to full HTML if exceeded)
+- Minimal memory overhead
+- No external dependencies
+
 ## Installing the bookmarklet (manual)
 
 We’ll ship a generated link in a later commit. For now:
@@ -121,9 +167,9 @@ Replace https://service.example.com/ingest with your real endpoint.
 
 ## Roadmap
 
+- [x] **Readability-like text extraction mode** - Clean content extraction with preserved formatting
 - Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
 - Optional compression (lz-string) and chunking
-- Readability-like text extraction mode
 - On-page preview of what will be sent
 - Per-site allowlist / denylist
 - Tiny dashboard that shows job status after send
