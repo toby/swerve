@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swerve Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .status-pending { background: #f39c12; }
+        .status-processing { background: #3498db; animation: pulse 1.5s infinite; }
+        .status-completed { background: #27ae60; }
+        .status-failed { background: #e74c3c; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .jobs-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .job-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .job-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .job-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .job-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+        
+        .job-url {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+        
+        .job-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .job-time {
+            font-size: 0.8rem;
+            color: #95a5a6;
+        }
+        
+        .job-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .job-actions .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .job-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .job-result h4 {
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        
+        .job-result ul {
+            margin: 0.5rem 0 0 1rem;
+        }
+        
+        .job-result li {
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .job-error {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fdf2f2;
+            border-radius: 4px;
+            border-left: 4px solid #e74c3c;
+            color: #c0392b;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #7f8c8d;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .bookmarklet-info {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .bookmarklet-info h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .bookmarklet-code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+            color: #495057;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .job-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Swerve Dashboard</h1>
+        <p>Track your AI-powered page captures and processing results</p>
+    </div>
+    
+    <div class="container">
+        <div class="bookmarklet-info">
+            <h3>📚 Bookmarklet Setup</h3>
+            <p>Drag this bookmarklet to your bookmarks bar, then click it on any page to capture and process it:</p>
+            <div class="bookmarklet-code" id="bookmarklet-code">
+                Loading bookmarklet...
+            </div>
+            <p><small>The bookmarklet will send page data to this dashboard for AI processing.</small></p>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="refreshJobs()">🔄 Refresh</button>
+            <button class="btn btn-danger" onclick="clearAllJobs()">🗑️ Clear All Jobs</button>
+            <span id="auto-refresh-status">Auto-refresh: ON (every 3s)</span>
+        </div>
+        
+        <div id="jobs-container">
+            <div class="empty-state">
+                <h3>No jobs yet</h3>
+                <p>Use the bookmarklet to capture and process web pages</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let autoRefreshInterval = null;
+        
+        // Generate bookmarklet code with current server URL
+        function generateBookmarklet() {
+            const serverUrl = window.location.origin;
+            const bookmarkletCode = `javascript:(async()=>{try{const E="${serverUrl}/ingest";const m={v:"0.1.0"};const d=document;const s=window.getSelection&&window.getSelection();const selectionText=s?String(s):"";const selectionHtml=s&&s.rangeCount?(()=>{const r=s.getRangeAt(0);const f=r.cloneContents();const e=d.createElement("div");e.appendChild(f);return e.innerHTML})():"";const payload={version:"0",page:{url:location.href,title:d.title||null,referrer:d.referrer||document.referrer||null,userAgent:navigator.userAgent,viewport:{width:window.innerWidth,height:window.innerHeight},scroll:{x:window.scrollX,y:window.scrollY}},snapshot:{html:d.documentElement.outerHTML,selectionText,selectionHtml,capturedAt:new Date().toISOString()},transfer:{encoding:"plain",chunk:{index:0,count:1}},client:{bookmarkletVersion:m.v,language:navigator.language}};const res=await fetch(E,{method:"POST",mode:"cors",keepalive:true,headers:{"content-type":"application/json"},body:JSON.stringify(payload)});if(!res.ok)throw new Error("upload failed");alert("Swerve: sent ✅")}catch(e){console.error(e);alert("Swerve: failed ❌")}})();`;
+            
+            document.getElementById('bookmarklet-code').innerHTML = `<a href="${bookmarkletCode}" style="color: #3498db; text-decoration: none;">📖 Swerve Capture</a><br><small>Drag this link to your bookmarks bar</small>`;
+        }
+        
+        // Fetch and display jobs
+        async function refreshJobs() {
+            try {
+                const response = await fetch('/jobs');
+                const jobs = await response.json();
+                displayJobs(jobs);
+            } catch (error) {
+                console.error('Error fetching jobs:', error);
+            }
+        }
+        
+        // Display jobs in the UI
+        function displayJobs(jobs) {
+            const container = document.getElementById('jobs-container');
+            
+            if (jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No jobs yet</h3>
+                        <p>Use the bookmarklet to capture and process web pages</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="jobs-grid">
+                    ${jobs.map(job => createJobCard(job)).join('')}
+                </div>
+            `;
+        }
+        
+        // Create a job card HTML
+        function createJobCard(job) {
+            const statusColor = {
+                'pending': 'status-pending',
+                'processing': 'status-processing', 
+                'completed': 'status-completed',
+                'failed': 'status-failed'
+            }[job.status];
+            
+            const timeAgo = getTimeAgo(job.createdAt);
+            const updatedAgo = getTimeAgo(job.updatedAt);
+            
+            return `
+                <div class="job-card" data-job-id="${job.id}">
+                    <div class="job-header">
+                        <div>
+                            <div class="job-title">
+                                <span class="status-indicator ${statusColor}"></span>
+                                ${job.title || 'Untitled Page'}
+                            </div>
+                            <div class="job-url">${job.url}</div>
+                        </div>
+                    </div>
+                    
+                    <div id="job-details-${job.id}">
+                        <!-- Details will be loaded here -->
+                    </div>
+                    
+                    <div class="job-meta">
+                        <div class="job-time">
+                            Created ${timeAgo} • Updated ${updatedAgo}
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn" onclick="viewJobDetails('${job.id}')">👁️ Details</button>
+                            <button class="btn btn-danger" onclick="deleteJob('${job.id}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // View job details
+        async function viewJobDetails(jobId) {
+            try {
+                const response = await fetch(`/jobs/${jobId}`);
+                const job = await response.json();
+                
+                const detailsContainer = document.getElementById(`job-details-${jobId}`);
+                
+                let detailsHtml = '';
+                
+                if (job.status === 'completed' && job.result) {
+                    detailsHtml = `
+                        <div class="job-result">
+                            <h4>🎉 Processing Complete</h4>
+                            <p><strong>Summary:</strong> ${job.result.summary}</p>
+                            <p><strong>Insights:</strong></p>
+                            <ul>
+                                ${job.result.insights.map(insight => `<li>${insight}</li>`).join('')}
+                            </ul>
+                            <p><small>Processing time: ${job.result.processingTime} | Word count: ${job.result.wordCount}</small></p>
+                        </div>
+                    `;
+                } else if (job.status === 'failed' && job.error) {
+                    detailsHtml = `
+                        <div class="job-error">
+                            <strong>❌ Processing Failed:</strong> ${job.error}
+                        </div>
+                    `;
+                } else if (job.status === 'processing') {
+                    detailsHtml = `
+                        <div style="text-align: center; padding: 1rem; color: #3498db;">
+                            ⏳ Processing in progress...
+                        </div>
+                    `;
+                } else if (job.status === 'pending') {
+                    detailsHtml = `
+                        <div style="text-align: center; padding: 1rem; color: #f39c12;">
+                            ⏱️ Queued for processing...
+                        </div>
+                    `;
+                }
+                
+                detailsContainer.innerHTML = detailsHtml;
+                
+            } catch (error) {
+                console.error('Error fetching job details:', error);
+            }
+        }
+        
+        // Delete a job
+        async function deleteJob(jobId) {
+            if (confirm('Are you sure you want to delete this job?')) {
+                try {
+                    const response = await fetch(`/jobs/${jobId}`, { method: 'DELETE' });
+                    if (response.ok) {
+                        refreshJobs();
+                    } else {
+                        alert('Failed to delete job');
+                    }
+                } catch (error) {
+                    console.error('Error deleting job:', error);
+                    alert('Error deleting job');
+                }
+            }
+        }
+        
+        // Clear all jobs
+        async function clearAllJobs() {
+            if (confirm('Are you sure you want to delete ALL jobs? This cannot be undone.')) {
+                try {
+                    const response = await fetch('/jobs');
+                    const jobs = await response.json();
+                    
+                    for (const job of jobs) {
+                        await fetch(`/jobs/${job.id}`, { method: 'DELETE' });
+                    }
+                    
+                    refreshJobs();
+                } catch (error) {
+                    console.error('Error clearing jobs:', error);
+                    alert('Error clearing jobs');
+                }
+            }
+        }
+        
+        // Format time ago
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            
+            const diffDays = Math.floor(diffHours / 24);
+            return `${diffDays}d ago`;
+        }
+        
+        // Auto-refresh setup
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(refreshJobs, 3000);
+            document.getElementById('auto-refresh-status').textContent = 'Auto-refresh: ON (every 3s)';
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            generateBookmarklet();
+            refreshJobs();
+            startAutoRefresh();
+        });
+    </script>
+</body>
+</html>
