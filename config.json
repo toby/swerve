@@ -1,5 +1,5 @@
 {
-  "endpoint": "https://service.example.com/ingest",
+  "endpoint": "http://localhost:3000/ingest",
   "authToken": "",
   "name": "Swerve"
 }
