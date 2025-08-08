@@ -155,6 +155,20 @@ Text is extracted with markdown-like formatting:
 - Minimal memory overhead
 - No external dependencies
 
+## Build System
+
+To build the full bookmarklet with text extraction:
+
+```bash
+# Build the bookmarklet
+node build.js
+
+# The generated bookmarklet will be in dist/bookmarklet.js
+# Copy and paste the contents as your bookmark URL
+```
+
+The built bookmarklet includes both the original functionality and the new Readability-like text extraction features.
+
 ## Installing the bookmarklet (manual)
 
 We’ll ship a generated link in a later commit. For now:
@@ -164,6 +178,8 @@ We’ll ship a generated link in a later commit. For now:
 javascript:(async()=>{try{const E="https://service.example.com/ingest";const m={v:"0.1.0"};const d=document;const s=window.getSelection&&window.getSelection();const selectionText=s?String(s):"";const selectionHtml=s&&s.rangeCount?(()=>{const r=s.getRangeAt(0);const f=r.cloneContents();const e=d.createElement("div");e.appendChild(f);return e.innerHTML})():"";const payload={version:"0",page:{url:location.href,title:d.title||null,referrer:d.referrer||document.referrer||null,userAgent:navigator.userAgent,viewport:{width:window.innerWidth,height:window.innerHeight},scroll:{x:window.scrollX,y:window.scrollY}},snapshot:{html:d.documentElement.outerHTML,selectionText,selectionHtml,capturedAt:new Date().toISOString()},transfer:{encoding:"plain",chunk:{index:0,count:1}},client:{bookmarkletVersion:m.v,language:navigator.language}};const res=await fetch(E,{method:"POST",mode:"cors",keepalive:true,headers:{"content-type":"application/json"},body:JSON.stringify(payload)});if(!res.ok)throw new Error("upload failed" );alert("Swerve: sent ✅")}catch(e){console.error(e);alert("Swerve: failed ❌")}})();
 
 Replace https://service.example.com/ingest with your real endpoint.
+
+**Note:** For the enhanced version with text extraction, use the built bookmarklet from `dist/bookmarklet.js` instead of the legacy code above.
 
 ## Roadmap
 
