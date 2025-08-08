@@ -1,5 +1,7 @@
 # Swerve — an AI bookmarklet that ships entire pages to your brainy backend
 
+**Status:** I made this for a demo and it doesn't currently work, but I'll probably keep vibe coding it.
+
 What if you could beam any web page into an AI service with a single click? Swerve is a tiny bookmarklet that grabs the page you’re looking at (DOM, meta, selection, and more) and posts it to a web endpoint for processing—summaries, insights, automations, you name it.
 
 Swerve is for folks who want zero-install, works-everywhere capture that plays nicely with CSP, privacy, and the realities of the modern web.
