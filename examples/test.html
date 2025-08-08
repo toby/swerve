@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swerve Chunking Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .large-content {
+            background-color: #f5f5f5;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        button {
+            background-color: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #005a87;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .status.info { background-color: #e7f3ff; }
+        .status.success { background-color: #e7ffe7; }
+        .status.error { background-color: #ffe7e7; }
+    </style>
+</head>
+<body>
+    <h1>Swerve Chunking Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <p>Use these buttons to test the chunking functionality:</p>
+        
+        <button onclick="generateLargeContent()">Generate Large Content (2MB+)</button>
+        <button onclick="clearContent()">Clear Content</button>
+        <button onclick="testBookmarklet()">Test Chunking Bookmarklet</button>
+        
+        <div id="status" class="status info">
+            Ready for testing. Current page size: <span id="pageSize">calculating...</span>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Content Area</h2>
+        <div id="contentArea">
+            <p>This is the initial content. Click "Generate Large Content" to create a page that will require chunking.</p>
+        </div>
+    </div>
+
+    <script>
+        // Test bookmarklet code (embedded for testing)
+        const CHUNKING_BOOKMARKLET = `
+        (async () => {
+          try {
+            const ENDPOINT = "http://localhost:3000/ingest";
+            const VERSION = "0.1.0";
+            const MAX_CHUNK_SIZE = 256 * 1024;
+            const SIZE_THRESHOLD = 1024 * 1024;
+
+            const jobId = 'job_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            const d = document;
+            const s = window.getSelection && window.getSelection();
+            const selectionText = s ? String(s) : "";
+            const selectionHtml = s && s.rangeCount ? (() => {
+              const r = s.getRangeAt(0);
+              const f = r.cloneContents();
+              const e = d.createElement("div");
+              e.appendChild(f);
+              return e.innerHTML;
+            })() : "";
+
+            const basePayload = {
+              version: "0",
+              jobId: jobId,
+              page: {
+                url: location.href,
+                title: d.title || null,
+                referrer: d.referrer || document.referrer || null,
+                userAgent: navigator.userAgent,
+                viewport: { width: window.innerWidth, height: window.innerHeight },
+                scroll: { x: window.scrollX, y: window.scrollY }
+              },
+              snapshot: {
+                html: d.documentElement.outerHTML,
+                selectionText,
+                selectionHtml,
+                capturedAt: new Date().toISOString()
+              },
+              client: {
+                bookmarkletVersion: VERSION,
+                language: navigator.language
+              }
+            };
+
+            const payloadStr = JSON.stringify(basePayload);
+            const payloadSize = new Blob([payloadStr]).size;
+            
+            updateStatus(\`Testing with payload size: \${Math.round(payloadSize / 1024)}KB\`, 'info');
+
+            if (payloadSize <= SIZE_THRESHOLD) {
+              await sendSinglePayload(basePayload);
+            } else {
+              await sendChunkedPayload(basePayload, payloadStr);
+            }
+
+            updateStatus("Swerve: sent ✅", 'success');
+
+          } catch (error) {
+            console.error('Swerve error:', error);
+            updateStatus("Swerve: failed ❌ - " + error.message, 'error');
+          }
+
+          async function sendSinglePayload(payload) {
+            payload.transfer = {
+              encoding: "plain",
+              chunk: { index: 0, count: 1, total: 1 }
+            };
+
+            const response = await fetch(ENDPOINT, {
+              method: "POST",
+              mode: "cors",
+              keepalive: true,
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+              throw new Error(\`Upload failed: \${response.status} \${response.statusText}\`);
+            }
+          }
+
+          async function sendChunkedPayload(basePayload, payloadStr) {
+            const htmlContent = basePayload.snapshot.html;
+            const chunks = splitIntoChunks(htmlContent, MAX_CHUNK_SIZE);
+            const totalChunks = chunks.length;
+
+            updateStatus(\`Splitting into \${totalChunks} chunks\`, 'info');
+
+            for (let i = 0; i < totalChunks; i++) {
+              const chunkPayload = {
+                ...basePayload,
+                snapshot: {
+                  ...basePayload.snapshot,
+                  html: chunks[i]
+                },
+                transfer: {
+                  encoding: "plain",
+                  chunk: {
+                    index: i,
+                    count: totalChunks,
+                    total: totalChunks,
+                    isLast: i === totalChunks - 1
+                  }
+                }
+              };
+
+              const response = await fetch(ENDPOINT, {
+                method: "POST",
+                mode: "cors",
+                keepalive: true,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(chunkPayload)
+              });
+
+              if (!response.ok) {
+                throw new Error(\`Chunk \${i + 1}/\${totalChunks} failed: \${response.status} \${response.statusText}\`);
+              }
+
+              updateStatus(\`Sent chunk \${i + 1}/\${totalChunks}\`, 'info');
+
+              if (i < totalChunks - 1) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
+            }
+
+            await sendFinalizationCall(basePayload.jobId, totalChunks);
+          }
+
+          async function sendFinalizationCall(jobId, totalChunks) {
+            const finalizationPayload = {
+              version: "0",
+              jobId: jobId,
+              type: "finalization",
+              transfer: {
+                encoding: "plain",
+                chunk: {
+                  index: -1,
+                  count: totalChunks,
+                  total: totalChunks,
+                  isFinalization: true
+                }
+              },
+              timestamp: new Date().toISOString()
+            };
+
+            const response = await fetch(ENDPOINT, {
+              method: "POST",
+              mode: "cors",
+              keepalive: true,
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(finalizationPayload)
+            });
+
+            if (!response.ok) {
+              throw new Error(\`Finalization failed: \${response.status} \${response.statusText}\`);
+            }
+            
+            updateStatus('Finalization sent', 'info');
+          }
+
+          function splitIntoChunks(content, chunkSize) {
+            const chunks = [];
+            let offset = 0;
+            while (offset < content.length) {
+              chunks.push(content.slice(offset, offset + chunkSize));
+              offset += chunkSize;
+            }
+            return chunks;
+          }
+        })();
+        `;
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function calculatePageSize() {
+            const html = document.documentElement.outerHTML;
+            const size = new Blob([html]).size;
+            document.getElementById('pageSize').textContent = `${Math.round(size / 1024)}KB`;
+            return size;
+        }
+
+        function generateLargeContent() {
+            const contentArea = document.getElementById('contentArea');
+            
+            // Generate large content that will exceed 2MB
+            let largeContent = '<div class="large-content">';
+            largeContent += '<h3>Generated Large Content for Chunking Test</h3>';
+            
+            // Create content that will be around 2.5MB
+            const baseText = 'This is test content for chunking functionality. '.repeat(100);
+            for (let i = 0; i < 250; i++) {
+                largeContent += `<div class="section-${i}">
+                    <h4>Section ${i + 1}</h4>
+                    <p>${baseText}</p>
+                    <ul>`;
+                
+                for (let j = 0; j < 20; j++) {
+                    largeContent += `<li>List item ${j + 1} with additional text content to increase size ${baseText.substring(0, 200)}</li>`;
+                }
+                
+                largeContent += `</ul></div>`;
+            }
+            
+            largeContent += '</div>';
+            contentArea.innerHTML = largeContent;
+            
+            setTimeout(() => {
+                const size = calculatePageSize();
+                updateStatus(`Generated large content. Page size: ${Math.round(size / 1024)}KB`, 'info');
+            }, 100);
+        }
+
+        function clearContent() {
+            document.getElementById('contentArea').innerHTML = 
+                '<p>Content cleared. This is now a small page that won\'t require chunking.</p>';
+            
+            setTimeout(() => {
+                const size = calculatePageSize();
+                updateStatus(`Content cleared. Page size: ${Math.round(size / 1024)}KB`, 'info');
+            }, 100);
+        }
+
+        function testBookmarklet() {
+            updateStatus('Running chunking test...', 'info');
+            try {
+                // Execute the bookmarklet code
+                eval(CHUNKING_BOOKMARKLET);
+            } catch (error) {
+                updateStatus(`Test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Initial page size calculation
+        setTimeout(calculatePageSize, 100);
+    </script>
+</body>
+</html>

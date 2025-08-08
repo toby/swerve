@@ -58,8 +58,10 @@ Browser ──(bookmarklet)──▶ POST /ingest
 POST /ingest
 Content-Type: application/json
 
+### Single payload (< 1MB)
 {
 	"version": "0",
+	"jobId": "job_abc123_xyz789",
 	"page": {
 		"url": "https://example.com/article",
 		"title": "Example Article",
@@ -76,7 +78,7 @@ Content-Type: application/json
 	},
 	"transfer": {
 		"encoding": "plain|lz",
-		"chunk": { "index": 0, "count": 1 }
+		"chunk": { "index": 0, "count": 1, "total": 1 }
 	},
 	"client": {
 		"bookmarkletVersion": "0.1.0",
@@ -84,15 +86,79 @@ Content-Type: application/json
 	}
 }
 
-Response 202 Accepted
+### Chunked payload (≥ 1MB)
+Each chunk follows the same structure, but with chunk-specific data:
+
 {
-	"jobId": "job_abc123",
-	"trackUrl": "https://service.example.com/jobs/job_abc123"
+	"version": "0",
+	"jobId": "job_abc123_xyz789",  // Same jobId for all chunks
+	"page": { ... },  // Same metadata for all chunks
+	"snapshot": {
+		"html": "...chunk content...",  // Only this chunk's HTML
+		"selectionText": "...",  // Same for all chunks
+		"selectionHtml": "...",  // Same for all chunks  
+		"capturedAt": "2025-08-08T12:34:56.000Z"
+	},
+	"transfer": {
+		"encoding": "plain|lz",
+		"chunk": {
+			"index": 0,        // 0-based chunk index
+			"count": 5,        // Total number of chunks
+			"total": 5,        // Total number of chunks (same as count)
+			"isLast": false    // true for the final chunk
+		}
+	},
+	"client": { ... }  // Same for all chunks
 }
 
-Notes
+### Finalization call
+After all chunks are sent, a finalization call is made:
+
+{
+	"version": "0",
+	"jobId": "job_abc123_xyz789",
+	"type": "finalization",
+	"transfer": {
+		"encoding": "plain",
+		"chunk": {
+			"index": -1,           // Special index for finalization
+			"count": 5,            // Total chunks that were sent
+			"total": 5,
+			"isFinalization": true
+		}
+	},
+	"timestamp": "2025-08-08T12:34:56.000Z"
+}
+
+### Response
+202 Accepted
+{
+	"jobId": "job_abc123_xyz789",
+	"trackUrl": "https://service.example.com/jobs/job_abc123_xyz789",
+	"chunkReceived": 3,    // Which chunk was received (1-indexed)
+	"totalChunks": 5,      // Total expected chunks
+	"isComplete": false    // true when all chunks received
+}
+
+### Chunking specifications
+
+**Chunking behavior:**
+- Pages > 1MB are automatically chunked into 256KB pieces
+- Chunks are sent sequentially with 100ms delay between requests
+- Each chunk includes full metadata but only its portion of HTML
+- A finalization call signals completion of all chunks
+- Server reassembles chunks using jobId and chunk index ordering
+
+**Error handling:**
+- If any chunk fails, the entire job is considered failed
+- Client shows specific error for failed chunk (e.g., "Chunk 3/5 failed")
+- Server should store partial chunks for debugging
+- Finalization call confirms successful transmission
+
+**Notes:**
 - Keep CORS open for your origin policy. The server must set Access-Control-Allow-Origin: * (or your host) and allow POST/JSON + optional compression.
-- For very large pages (>1–2 MB), prefer chunking (sequential POSTs with the same job token or session id).
+- jobId format: `job_{timestamp}_{random}` ensures uniqueness across sessions
+- Chunk size is optimized for network efficiency (256KB) while staying under most server limits
 
 ## Bookmarklet behavior choices
 
@@ -121,8 +187,8 @@ Replace https://service.example.com/ingest with your real endpoint.
 
 ## Roadmap
 
-- Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
-- Optional compression (lz-string) and chunking
+- [x] ~~Optional compression (lz-string) and chunking~~ **✅ IMPLEMENTED** - Chunking for large payloads (>1MB) with 256KB chunks, sequential dispatch, and finalization calls
+- Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token  
 - Readability-like text extraction mode
 - On-page preview of what will be sent
 - Per-site allowlist / denylist
