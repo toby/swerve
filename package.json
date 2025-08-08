@@ -1,0 +1,20 @@
+{
+  "name": "swerve-bookmarklet",
+  "version": "0.2.0",
+  "description": "AI bookmarklet that ships entire pages to your brainy backend with preview capabilities",
+  "main": "src/swerve.js",
+  "scripts": {
+    "build": "node build.js",
+    "test": "python -m http.server 8000",
+    "dev": "python -m http.server 8000"
+  },
+  "keywords": ["bookmarklet", "ai", "web-scraping", "preview"],
+  "author": "Swerve Team",
+  "license": "MIT",
+  "devDependencies": {},
+  "files": [
+    "src/",
+    "dist/",
+    "README.md"
+  ]
+}

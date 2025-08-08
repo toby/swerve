@@ -4,6 +4,18 @@ What if you could beam any web page into an AI service with a single click? Swer
 
 Swerve is for folks who want zero-install, works-everywhere capture that plays nicely with CSP, privacy, and the realities of the modern web.
 
+## What's New in v0.2.0 🎉
+
+**Pre-Capture Preview & Editing Capabilities** - A comprehensive preview system that shows users exactly what content will be sent before transmission:
+
+- **📋 Content Preview Modal**: See an accurate representation of captured content with size metrics and HTML/text previews
+- **🔄 Multiple Capture Modes**: Toggle between Full Page, Selection Only, Text Only, and Visible Area capture
+- **✂️ Content Redaction Tools**: Click-to-hide sensitive elements with visual feedback (red outline, reduced opacity)
+- **✅ Confirmation Step**: Explicit send action prevents accidental data transmission
+- **📱 Responsive Design**: Clean, intuitive modal interface that works across different screen sizes
+- **⌨️ Keyboard Navigation**: ESC to dismiss, accessible controls
+- **🚀 Performance Optimized**: Preview generation doesn't significantly slow down the capture process
+
 ## Why a bookmarklet?
 
 - Zero install friction: drag to your bookmarks bar, click to run—works on Chrome, Safari, Firefox, Edge.
@@ -121,12 +133,12 @@ Replace https://service.example.com/ingest with your real endpoint.
 
 ## Roadmap
 
-- Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token
-- Optional compression (lz-string) and chunking
-- Readability-like text extraction mode
-- On-page preview of what will be sent
-- Per-site allowlist / denylist
-- Tiny dashboard that shows job status after send
+- [x] **On-page preview of what will be sent** - ✨ NEW: Full preview modal with content inspection and redaction tools
+- [x] Generator: produce a minified bookmarklet from /src and inject the configured endpoint + token  
+- [ ] Optional compression (lz-string) and chunking
+- [ ] Readability-like text extraction mode
+- [ ] Per-site allowlist / denylist
+- [ ] Tiny dashboard that shows job status after send
 
 ## Developer notes
 

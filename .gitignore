@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.local
+.vscode/
+dist/bookmarklet.txt
+coverage/
+.nyc_output/

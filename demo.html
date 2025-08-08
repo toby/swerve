@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swerve Preview Test Demo</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        
+        .test-button {
+            background: #007acc;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 1rem 0;
+            display: inline-block;
+        }
+        
+        .test-button:hover {
+            background: #005c99;
+            transform: translateY(-2px);
+            transition: all 0.2s;
+        }
+        
+        .highlight {
+            background: #ffd93d;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+        
+        .sensitive {
+            background: #ffe6e6;
+            padding: 0.5rem;
+            border-left: 4px solid #ff6b6b;
+            margin: 1rem 0;
+        }
+        
+        .feature-demo {
+            background: #f0f8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .instructions {
+            background: #e6f3ff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #007acc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Swerve Preview Demo</h1>
+        
+        <div class="instructions">
+            <h3>Test the Preview System</h3>
+            <p>Click the button below to launch the Swerve preview modal and explore the new features!</p>
+        </div>
+
+        <button class="test-button" onclick="loadSwervePreview()">
+            📄 Launch Swerve Preview
+        </button>
+
+        <div class="feature-demo">
+            <h3>✨ Features to Test</h3>
+            <ul>
+                <li><strong>Content Preview:</strong> See exactly what will be captured</li>
+                <li><strong>Capture Modes:</strong> Toggle between full page, selection, text-only, and visible area</li>
+                <li><strong>Element Redaction:</strong> Hide sensitive information before sending</li>
+                <li><strong>Responsive Modal:</strong> Clean, intuitive interface that adapts to content</li>
+                <li><strong>Safe Preview:</strong> No data sent without explicit confirmation</li>
+            </ul>
+        </div>
+
+        <h2>Sample Content for Testing</h2>
+        
+        <p>This is some regular paragraph text that will be captured. You can <span class="highlight">select this highlighted text</span> to test selection-only mode.</p>
+
+        <div class="sensitive">
+            <strong>🔒 Sensitive Information Block</strong><br>
+            Email: confidential@example.com<br>
+            Phone: (555) 987-6543<br>
+            Account: ACC-789012<br>
+            <em>Try using the redaction tool to hide this sensitive block!</em>
+        </div>
+
+        <h3>Testing Instructions</h3>
+        <ol>
+            <li>Click "Launch Swerve Preview" to open the modal</li>
+            <li>Observe the content preview for "Full Page" mode</li>
+            <li>Try switching between different capture modes</li>
+            <li>Click "Enable Element Selection" and then click on the sensitive info block above</li>
+            <li>Notice how redacted elements get outlined in red</li>
+            <li>Review how the preview updates when modes change</li>
+            <li>Test dismissing with "Cancel", Escape key, or clicking the backdrop</li>
+        </ol>
+
+        <div class="feature-demo">
+            <h3>Expected Behavior</h3>
+            <ul>
+                <li>Modal appears with accurate content size information</li>
+                <li>Mode switching updates preview in real-time</li>
+                <li>Element selection highlights clickable elements</li>
+                <li>Redacted elements show with red outline and reduced opacity</li>
+                <li>Network request will fail (expected) but you can see payload in dev tools</li>
+            </ul>
+        </div>
+
+        <p><strong>Note:</strong> This demo uses a test endpoint that will fail, but you can inspect the network request in browser developer tools to see the complete payload structure.</p>
+    </div>
+
+    <script>
+        // Inline the Swerve script for easy testing
+        function loadSwervePreview() {
+            // Execute the Swerve bookmarklet code directly
+            (async function() {
+                'use strict';
+                
+                // Configuration
+                const SWERVE_CONFIG = {
+                    endpoint: 'https://service.example.com/ingest',
+                    version: '0.2.0',
+                    ui: {
+                        modalId: 'swerve-preview-modal',
+                        backdropId: 'swerve-modal-backdrop'
+                    }
+                };
+
+                // Capture modes
+                const CAPTURE_MODES = {
+                    FULL_PAGE: 'full-page',
+                    SELECTION: 'selection',
+                    TEXT_ONLY: 'text-only',
+                    VISIBLE_AREA: 'visible-area'
+                };
+
+                // State management
+                let currentCaptureMode = CAPTURE_MODES.FULL_PAGE;
+                let capturedData = null;
+                let hiddenElements = new Set();
+
+                /**
+                 * Data collection functions
+                 */
+                function collectPageData(mode = CAPTURE_MODES.FULL_PAGE) {
+                    const d = document;
+                    const s = window.getSelection && window.getSelection();
+                    const selectionText = s ? String(s) : '';
+                    const selectionHtml = s && s.rangeCount ? (() => {
+                        const r = s.getRangeAt(0);
+                        const f = r.cloneContents();
+                        const e = d.createElement('div');
+                        e.appendChild(f);
+                        return e.innerHTML;
+                    })() : '';
+
+                    let html = '';
+                    let contentText = '';
+
+                    switch (mode) {
+                        case CAPTURE_MODES.FULL_PAGE:
+                            html = d.documentElement.outerHTML;
+                            contentText = d.body ? d.body.innerText : d.documentElement.innerText;
+                            break;
+                        case CAPTURE_MODES.SELECTION:
+                            html = selectionHtml;
+                            contentText = selectionText;
+                            break;
+                        case CAPTURE_MODES.TEXT_ONLY:
+                            html = '';
+                            contentText = extractTextContent();
+                            break;
+                        case CAPTURE_MODES.VISIBLE_AREA:
+                            html = getVisibleAreaHTML();
+                            contentText = getVisibleAreaText();
+                            break;
+                    }
+
+                    return {
+                        version: '0',
+                        page: {
+                            url: location.href,
+                            title: d.title || null,
+                            referrer: d.referrer || document.referrer || null,
+                            userAgent: navigator.userAgent,
+                            viewport: {
+                                width: window.innerWidth,
+                                height: window.innerHeight
+                            },
+                            scroll: {
+                                x: window.scrollX,
+                                y: window.scrollY
+                            }
+                        },
+                        snapshot: {
+                            html: html,
+                            selectionText: selectionText,
+                            selectionHtml: selectionHtml,
+                            textContent: contentText,
+                            capturedAt: new Date().toISOString(),
+                            captureMode: mode,
+                            hiddenElements: Array.from(hiddenElements)
+                        },
+                        transfer: {
+                            encoding: 'plain',
+                            chunk: { index: 0, count: 1 }
+                        },
+                        client: {
+                            bookmarkletVersion: SWERVE_CONFIG.version,
+                            language: navigator.language
+                        }
+                    };
+                }
+
+                function extractTextContent() {
+                    const content = document.body ? document.body.innerText : document.documentElement.innerText;
+                    return content.replace(/\s+/g, ' ').trim();
+                }
+
+                function getVisibleAreaHTML() {
+                    const viewport = {
+                        top: window.scrollY,
+                        left: window.scrollX,
+                        bottom: window.scrollY + window.innerHeight,
+                        right: window.scrollX + window.innerWidth
+                    };
+
+                    const elements = [];
+                    const walker = document.createTreeWalker(
+                        document.body || document.documentElement,
+                        NodeFilter.SHOW_ELEMENT,
+                        {
+                            acceptNode: function(node) {
+                                const rect = node.getBoundingClientRect();
+                                const absRect = {
+                                    top: rect.top + window.scrollY,
+                                    left: rect.left + window.scrollX,
+                                    bottom: rect.bottom + window.scrollY,
+                                    right: rect.right + window.scrollX
+                                };
+
+                                if (absRect.bottom >= viewport.top && absRect.top <= viewport.bottom &&
+                                    absRect.right >= viewport.left && absRect.left <= viewport.right) {
+                                    return NodeFilter.FILTER_ACCEPT;
+                                }
+                                return NodeFilter.FILTER_REJECT;
+                            }
+                        }
+                    );
+
+                    let node;
+                    while (node = walker.nextNode()) {
+                        elements.push(node);
+                    }
+
+                    const container = document.createElement('div');
+                    elements.forEach(el => {
+                        const clone = el.cloneNode(true);
+                        container.appendChild(clone);
+                    });
+
+                    return container.innerHTML;
+                }
+
+                function getVisibleAreaText() {
+                    const visibleHTML = getVisibleAreaHTML();
+                    const temp = document.createElement('div');
+                    temp.innerHTML = visibleHTML;
+                    return temp.innerText || temp.textContent || '';
+                }
+
+                /**
+                 * Preview UI Functions - Simplified for demo
+                 */
+                function createPreviewModal() {
+                    // Remove existing modal if present
+                    const existingBackdrop = document.getElementById(SWERVE_CONFIG.ui.backdropId);
+                    if (existingBackdrop) {
+                        existingBackdrop.remove();
+                    }
+
+                    // Create backdrop
+                    const backdrop = document.createElement('div');
+                    backdrop.id = SWERVE_CONFIG.ui.backdropId;
+                    backdrop.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.5);
+                        z-index: 999999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    `;
+
+                    // Create modal
+                    const modal = document.createElement('div');
+                    modal.id = SWERVE_CONFIG.ui.modalId;
+                    modal.style.cssText = `
+                        background: white;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+                        width: 90%;
+                        max-width: 800px;
+                        max-height: 90%;
+                        overflow: hidden;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                        display: flex;
+                        flex-direction: column;
+                    `;
+
+                    // Initial preview data
+                    const previewData = collectPageData(currentCaptureMode);
+                    
+                    modal.innerHTML = `
+                        <div style="padding: 20px; border-bottom: 1px solid #e1e5e9;">
+                            <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #1a1a1a;">
+                                📄 Swerve Preview - What will be sent?
+                            </h2>
+                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <label style="display: flex; align-items: center; gap: 4px; font-size: 14px;">
+                                    <input type="radio" name="captureMode" value="full-page" checked>
+                                    Full Page
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; font-size: 14px;">
+                                    <input type="radio" name="captureMode" value="selection">
+                                    Selection Only
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; font-size: 14px;">
+                                    <input type="radio" name="captureMode" value="text-only">
+                                    Text Only
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 4px; font-size: 14px;">
+                                    <input type="radio" name="captureMode" value="visible-area">
+                                    Visible Area
+                                </label>
+                            </div>
+                        </div>
+                        <div style="flex: 1; overflow-y: auto; padding: 20px;">
+                            <div id="swerve-content-preview" style="border: 1px solid #e1e5e9; border-radius: 4px; padding: 16px; background: #f8f9fa; font-size: 13px; line-height: 1.5; max-height: 300px; overflow-y: auto;">
+                                <strong>Page Title:</strong> ${previewData.page.title || '(no title)'}<br>
+                                <strong>URL:</strong> ${previewData.page.url}<br>
+                                <strong>Content Size:</strong> ${(previewData.snapshot.html.length / 1024).toFixed(1)} KB<br>
+                                <strong>Text Length:</strong> ${previewData.snapshot.textContent.length} characters<br><br>
+                                <strong>HTML Preview (first 500 chars):</strong><br>
+                                <code style="display: block; background: white; padding: 8px; border-radius: 3px; white-space: pre-wrap; font-size: 11px; max-height: 150px; overflow-y: auto;">${escapeHtml(previewData.snapshot.html.substring(0, 500))}${previewData.snapshot.html.length > 500 ? '...' : ''}</code>
+                            </div>
+                            <div style="margin-top: 16px;">
+                                <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">Redaction Tools</h3>
+                                <p style="margin: 0 0 12px 0; font-size: 12px; color: #666;">Click on elements in the page to hide them from capture (experimental)</p>
+                                <button id="swerve-toggle-redaction" style="padding: 6px 12px; font-size: 12px; border: 1px solid #d0d7de; background: white; border-radius: 4px; cursor: pointer;">
+                                    Enable Element Selection
+                                </button>
+                                <button id="swerve-clear-redactions" style="padding: 6px 12px; font-size: 12px; border: 1px solid #d0d7de; background: white; border-radius: 4px; cursor: pointer; margin-left: 8px;">
+                                    Clear All
+                                </button>
+                            </div>
+                        </div>
+                        <div style="padding: 20px; border-top: 1px solid #e1e5e9; display: flex; gap: 12px; justify-content: flex-end;">
+                            <button id="swerve-cancel" style="padding: 8px 16px; font-size: 14px; border: 1px solid #d0d7de; background: white; border-radius: 4px; cursor: pointer;">
+                                Cancel
+                            </button>
+                            <button id="swerve-send" style="padding: 8px 16px; font-size: 14px; border: none; background: #0969da; color: white; border-radius: 4px; cursor: pointer;">
+                                Send to Swerve ✨
+                            </button>
+                        </div>
+                    `;
+
+                    backdrop.appendChild(modal);
+                    document.body.appendChild(backdrop);
+
+                    // Basic event listeners
+                    modal.querySelector('#swerve-cancel').addEventListener('click', () => {
+                        backdrop.remove();
+                    });
+
+                    modal.querySelector('#swerve-send').addEventListener('click', () => {
+                        alert('Demo mode: Check browser console for payload data!');
+                        console.log('Swerve payload:', collectPageData(currentCaptureMode));
+                        backdrop.remove();
+                    });
+
+                    backdrop.addEventListener('click', (e) => {
+                        if (e.target === backdrop) {
+                            backdrop.remove();
+                        }
+                    });
+
+                    document.addEventListener('keydown', function escapeHandler(e) {
+                        if (e.key === 'Escape') {
+                            backdrop.remove();
+                            document.removeEventListener('keydown', escapeHandler);
+                        }
+                    });
+
+                    // Mode switching
+                    modal.querySelectorAll('input[name="captureMode"]').forEach(radio => {
+                        radio.addEventListener('change', (e) => {
+                            currentCaptureMode = e.target.value;
+                            updatePreview();
+                        });
+                    });
+
+                    // Simple redaction toggle
+                    let redactionMode = false;
+                    const toggleBtn = modal.querySelector('#swerve-toggle-redaction');
+                    
+                    toggleBtn.addEventListener('click', () => {
+                        redactionMode = !redactionMode;
+                        toggleBtn.textContent = redactionMode ? 'Disable Element Selection' : 'Enable Element Selection';
+                        toggleBtn.style.background = redactionMode ? '#fff3cd' : 'white';
+                        document.body.style.cursor = redactionMode ? 'crosshair' : '';
+                        
+                        if (!redactionMode) {
+                            // Clear redaction styles
+                            document.querySelectorAll('[style*="outline: 2px solid red"]').forEach(el => {
+                                el.style.outline = '';
+                                el.style.opacity = '';
+                            });
+                        }
+                    });
+
+                    function updatePreview() {
+                        const previewElement = document.getElementById('swerve-content-preview');
+                        if (!previewElement) return;
+
+                        const data = collectPageData(currentCaptureMode);
+                        let content = '';
+
+                        switch (currentCaptureMode) {
+                            case 'full-page':
+                                content = `<strong>Content Size:</strong> ${(data.snapshot.html.length / 1024).toFixed(1)} KB<br>
+                                          <strong>Text Length:</strong> ${data.snapshot.textContent.length} chars<br>
+                                          <strong>Preview:</strong><br>
+                                          <code style="display: block; background: white; padding: 8px; border-radius: 3px; white-space: pre-wrap; font-size: 11px; max-height: 150px; overflow-y: auto;">${escapeHtml(data.snapshot.html.substring(0, 300))}...</code>`;
+                                break;
+                            case 'selection':
+                                content = `<strong>Selected Text:</strong> ${data.snapshot.selectionText.length} chars<br>
+                                          <strong>Selected HTML:</strong> ${(data.snapshot.selectionHtml.length / 1024).toFixed(1)} KB<br>
+                                          <div style="background: white; padding: 8px; border-radius: 3px; max-height: 150px; overflow-y: auto;">${data.snapshot.selectionText || '(no selection)'}</div>`;
+                                break;
+                            case 'text-only':
+                                content = `<strong>Extracted Text:</strong> ${data.snapshot.textContent.length} chars<br>
+                                          <div style="background: white; padding: 8px; border-radius: 3px; max-height: 150px; overflow-y: auto;">${data.snapshot.textContent.substring(0, 500)}...</div>`;
+                                break;
+                            case 'visible-area':
+                                content = `<strong>Visible Content:</strong> ${(data.snapshot.html.length / 1024).toFixed(1)} KB<br>
+                                          <strong>Text Length:</strong> ${data.snapshot.textContent.length} chars<br>
+                                          <div style="background: white; padding: 8px; border-radius: 3px; max-height: 150px; overflow-y: auto;">${data.snapshot.textContent.substring(0, 500)}...</div>`;
+                                break;
+                        }
+
+                        previewElement.innerHTML = content;
+                    }
+                }
+
+                function escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+
+                /**
+                 * Main execution
+                 */
+                try {
+                    // Check if we're already running
+                    if (document.getElementById(SWERVE_CONFIG.ui.modalId)) {
+                        alert('Swerve preview is already open!');
+                        return;
+                    }
+
+                    // Create and show the preview modal
+                    createPreviewModal();
+                    
+                } catch (error) {
+                    console.error('Swerve error:', error);
+                    alert(`Swerve: Error - ${error.message}`);
+                }
+            })();
+        }
+    </script>
+</body>
+</html>
